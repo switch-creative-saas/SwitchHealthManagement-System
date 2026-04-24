@@ -1,0 +1,283 @@
+// Sidebar component - no state needed here
+import { 
+  LayoutDashboard, 
+  CreditCard,
+  Users, 
+  FileText, 
+  CalendarDays,
+  FlaskConical, 
+  Pill, 
+  BarChart3, 
+  Settings, 
+  HelpCircle,
+  ChevronLeft,
+  ChevronRight,
+  Sparkles,
+  UserCog,
+  Building2,
+  Shield,
+  Receipt,
+  Menu,
+  X,
+  Video,
+  BrainCircuit,
+  Network,
+} from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { useResponsive } from '@/contexts/ResponsiveContext';
+import { useAuth } from '@/contexts/AuthContext';
+import type { PageType } from '@/types';
+
+interface SidebarProps {
+  currentPage: PageType;
+  onPageChange: (page: PageType) => void;
+}
+
+interface NavItem {
+  id: PageType;
+  label: string;
+  icon: React.ElementType;
+  module: string;
+}
+
+const navItems: NavItem[] = [
+  { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, module: 'Dashboard' },
+  { id: 'patient-identity', label: 'Health Identity', icon: CreditCard, module: 'Patients' },
+  { id: 'patients', label: 'Patients', icon: Users, module: 'Patients' },
+  { id: 'emr', label: 'EMR', icon: FileText, module: 'EMR' },
+  { id: 'telemedicine', label: 'Telemedicine', icon: Video, module: 'Appointments' },
+  { id: 'ai-clinical-intelligence', label: 'AI Clinical Intelligence', icon: BrainCircuit, module: 'EMR' },
+  { id: 'switch-network', label: 'Switch Network', icon: Network, module: 'Administration' },
+  { id: 'appointments', label: 'Appointments', icon: CalendarDays, module: 'Appointments' },
+  { id: 'laboratory', label: 'Laboratory', icon: FlaskConical, module: 'Laboratory' },
+  { id: 'pharmacy', label: 'Pharmacy', icon: Pill, module: 'Pharmacy' },
+  { id: 'billing', label: 'Billing', icon: CreditCard, module: 'Billing' },
+  { id: 'analytics', label: 'Analytics', icon: BarChart3, module: 'Analytics' },
+  { id: 'human-resources', label: 'Human Resources', icon: UserCog, module: 'Human Resources' },
+  { id: 'administration', label: 'Administration', icon: Building2, module: 'Administration' },
+  { id: 'subscription', label: 'Subscription', icon: Receipt, module: 'Settings' },
+  { id: 'audit-logs', label: 'Security', icon: Shield, module: 'Settings' },
+];
+
+const bottomNavItems: NavItem[] = [
+  { id: 'settings', label: 'Settings', icon: Settings, module: 'Settings' },
+];
+
+export function Sidebar({ currentPage, onPageChange }: SidebarProps) {
+  const { isMobile, sidebarOpen, setSidebarOpen, sidebarCollapsed, setSidebarCollapsed } = useResponsive();
+  const { canView, isSuperAdmin } = useAuth();
+
+  const handleNavClick = (id: PageType) => {
+    onPageChange(id);
+    if (isMobile) setSidebarOpen(false);
+  };
+
+  const filteredNavItems = navItems.filter(item => {
+    if (isSuperAdmin) return true;
+    return canView(item.module);
+  });
+
+  const filteredBottomNav = bottomNavItems.filter(item => {
+    if (isSuperAdmin) return true;
+    return canView(item.module);
+  });
+
+  // Mobile drawer
+  if (isMobile) {
+    return (
+      <>
+        {/* Mobile Toggle Button */}
+        <button
+          onClick={() => setSidebarOpen(!sidebarOpen)}
+          className="fixed top-4 left-4 z-50 p-2.5 rounded-xl bg-white/80 backdrop-blur-xl shadow-lg border border-gray-100/50"
+        >
+          {sidebarOpen ? <X className="w-5 h-5 text-gray-700" /> : <Menu className="w-5 h-5 text-gray-700" />}
+        </button>
+
+        {/* Mobile Drawer Overlay */}
+        {sidebarOpen && (
+          <div 
+            className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40 animate-in fade-in duration-300"
+            onClick={() => setSidebarOpen(false)}
+          />
+        )}
+
+        {/* Mobile Drawer */}
+        <aside 
+          className={cn(
+            "fixed top-0 left-0 bottom-0 z-50 flex flex-col transition-all duration-300 ease-out",
+            sidebarOpen ? "translate-x-0" : "-translate-x-full",
+            "w-72"
+          )}
+          style={{ background: 'linear-gradient(180deg, #1E1B8F 0%, #2D2B9F 100%)' }}
+        >
+          <SidebarContent 
+            currentPage={currentPage} 
+            onPageChange={handleNavClick}
+            expanded={true}
+            navItems={filteredNavItems}
+            bottomNavItems={filteredBottomNav}
+            onToggle={() => setSidebarOpen(false)}
+          />
+        </aside>
+      </>
+    );
+  }
+
+  // Tablet & Desktop
+  return (
+    <aside 
+      className={cn(
+        "flex flex-col transition-all duration-300 ease-out z-20 h-screen sticky top-0",
+        sidebarCollapsed ? "w-20" : "w-72"
+      )}
+      style={{ background: 'linear-gradient(180deg, #1E1B8F 0%, #2D2B9F 100%)' }}
+    >
+      <SidebarContent 
+        currentPage={currentPage} 
+        onPageChange={handleNavClick}
+        expanded={!sidebarCollapsed}
+        navItems={filteredNavItems}
+        bottomNavItems={filteredBottomNav}
+        onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
+      />
+    </aside>
+  );
+}
+
+interface SidebarContentProps {
+  currentPage: PageType;
+  onPageChange: (page: PageType) => void;
+  expanded: boolean;
+  navItems: NavItem[];
+  bottomNavItems: NavItem[];
+  onToggle: () => void;
+}
+
+function SidebarContent({ currentPage, onPageChange, expanded, navItems, bottomNavItems, onToggle }: SidebarContentProps) {
+  return (
+    <>
+      {/* Logo */}
+      <div className="h-20 px-5 flex items-center justify-between flex-shrink-0">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-white/10 backdrop-blur-sm flex items-center justify-center flex-shrink-0 border border-white/20">
+            <div className="relative">
+              <div className="w-6 h-6 rounded-full border-2 border-[#D4AF37] flex items-center justify-center">
+                <div className="w-2 h-2 rounded-full bg-[#D4AF37]" />
+              </div>
+              <div className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-[#D4AF37] animate-pulse" />
+            </div>
+          </div>
+          
+          {expanded && (
+            <div className="flex flex-col">
+              <span className="font-bold text-white text-sm tracking-tight">Switch Health</span>
+              <span className="text-[10px] text-white/60 tracking-wider uppercase">Management System</span>
+            </div>
+          )}
+        </div>
+        
+        <button 
+          onClick={onToggle}
+          className="p-2 rounded-lg bg-white/10 hover:bg-white/20 text-white/70 hover:text-white transition-all duration-200"
+        >
+          {expanded ? <ChevronLeft className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+        </button>
+      </div>
+
+      {/* Divider */}
+      <div className="mx-5 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+
+      {/* Main Navigation */}
+      <nav className="flex-1 py-4 px-3 space-y-1 overflow-y-auto scrollbar-hide">
+        {navItems.map((item) => {
+          const Icon = item.icon;
+          const isActive = currentPage === item.id;
+          
+          return (
+            <button
+              key={item.id}
+              onClick={() => onPageChange(item.id)}
+              className={cn(
+                "w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200",
+                isActive 
+                  ? "bg-[#D4AF37]/20 text-[#D4AF37] border border-[#D4AF37]/30" 
+                  : "text-white/60 hover:bg-white/10 hover:text-white border border-transparent",
+                !expanded && "justify-center px-2"
+              )}
+              title={!expanded ? item.label : undefined}
+            >
+              <Icon className={cn(
+                "w-5 h-5 flex-shrink-0 transition-transform duration-200",
+                isActive && "scale-110"
+              )} />
+              {expanded && <span>{item.label}</span>}
+              
+              {isActive && expanded && (
+                <div className="ml-auto w-1.5 h-1.5 rounded-full bg-[#D4AF37] animate-pulse" />
+              )}
+            </button>
+          );
+        })}
+      </nav>
+
+      {/* Gulia AI Promo */}
+      {expanded && (
+        <div className="mx-4 mb-4 p-4 rounded-2xl bg-gradient-to-br from-[#D4AF37]/20 to-[#D4AF37]/10 border border-[#D4AF37]/30">
+          <div className="flex items-center gap-2 mb-2">
+            <Sparkles className="w-4 h-4 text-[#D4AF37]" />
+            <span className="text-xs font-semibold text-[#D4AF37]">Gulia AI</span>
+          </div>
+          <p className="text-[10px] text-white/60 mb-3">AI-powered clinical insights</p>
+          <button className="w-full py-2 px-3 rounded-lg bg-[#D4AF37]/20 hover:bg-[#D4AF37]/30 text-[#D4AF37] text-xs font-medium transition-all duration-200">
+            Try Now
+          </button>
+        </div>
+      )}
+
+      {/* Bottom Navigation */}
+      <div className="py-4 px-3 border-t border-white/10 space-y-1">
+        {bottomNavItems.map((item) => {
+          const Icon = item.icon;
+          const isActive = currentPage === item.id;
+          
+          return (
+            <button
+              key={item.id}
+              onClick={() => onPageChange(item.id)}
+              className={cn(
+                "w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200",
+                isActive 
+                  ? "bg-[#D4AF37]/20 text-[#D4AF37] border border-[#D4AF37]/30" 
+                  : "text-white/60 hover:bg-white/10 hover:text-white border border-transparent",
+                !expanded && "justify-center px-2"
+              )}
+              title={!expanded ? item.label : undefined}
+            >
+              <Icon className="w-5 h-5 flex-shrink-0" />
+              {expanded && <span>{item.label}</span>}
+            </button>
+          );
+        })}
+        
+        {/* Help */}
+        <button
+          className={cn(
+            "w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-white/60 hover:bg-white/10 hover:text-white transition-all duration-200 border border-transparent",
+            !expanded && "justify-center px-2"
+          )}
+        >
+          <HelpCircle className="w-5 h-5 flex-shrink-0" />
+          {expanded && <span>Help & Support</span>}
+        </button>
+      </div>
+
+      {/* Version */}
+      {expanded && (
+        <div className="px-5 py-3 text-center">
+          <span className="text-[10px] text-white/40">v2.0.0 • Offline-First</span>
+        </div>
+      )}
+    </>
+  );
+}

@@ -1,0 +1,92 @@
+import { Wifi, WifiOff } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { useResponsive } from '@/contexts/ResponsiveContext';
+import { GlobalSearch } from '@/components/search/GlobalSearch';
+import { NotificationBell } from '@/components/notifications/NotificationBell';
+import { ProfileDropdown } from '@/components/profile/ProfileDropdown';
+import { useState, useEffect } from 'react';
+
+interface HeaderProps {
+  title: string;
+  onAIClick: () => void;
+  onPageChange: (page: string) => void;
+}
+
+export function Header({ title, onAIClick, onPageChange }: HeaderProps) {
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
+  const [currentTime, setCurrentTime] = useState(new Date());
+  const { isMobile } = useResponsive();
+
+  useEffect(() => {
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+    
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    
+    const timer = setInterval(() => setCurrentTime(new Date()), 60000);
+    
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+      clearInterval(timer);
+    };
+  }, []);
+
+  return (
+    <header className="h-20 px-4 sm:px-6 flex items-center justify-between bg-white/80 backdrop-blur-xl border-b border-white/60 sticky top-0 z-10">
+      {/* Left: Title & Mobile Spacer */}
+      <div className={cn("flex items-center gap-4", isMobile && "ml-12")}>
+        <div>
+          <h1 className="text-lg sm:text-xl font-semibold text-gray-900">{title}</h1>
+          <p className="text-xs text-gray-500 hidden sm:block">
+            {currentTime.toLocaleDateString('en-US', { 
+              weekday: 'long', 
+              year: 'numeric', 
+              month: 'long', 
+              day: 'numeric' 
+            })}
+          </p>
+        </div>
+      </div>
+
+      {/* Center: Search (responsive) */}
+      <GlobalSearch />
+
+      {/* Right: Actions */}
+      <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+        {/* Connection Status - hidden on mobile */}
+        <div className={cn(
+          "hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium",
+          isOnline 
+            ? "bg-green-100 text-green-700" 
+            : "bg-amber-100 text-amber-700"
+        )}>
+          {isOnline ? <Wifi className="w-3.5 h-3.5" /> : <WifiOff className="w-3.5 h-3.5" />}
+          <span className="hidden lg:inline">{isOnline ? 'Online' : 'Offline'}</span>
+        </div>
+
+        {/* AI Button */}
+        <button
+          onClick={onAIClick}
+          className="relative p-2.5 rounded-xl bg-gradient-to-br from-[#1E1B8F]/10 to-[#D4AF37]/10 hover:from-[#1E1B8F]/20 hover:to-[#D4AF37]/20 border border-[#1E1B8F]/20 transition-all duration-200"
+        >
+          <svg className="w-5 h-5 text-[#1E1B8F]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M12 2L2 7l10 5 10-5-10-5z" />
+            <path d="M2 17l10 5 10-5" />
+            <path d="M2 12l10 5 10-5" />
+          </svg>
+          <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-[#D4AF37] text-[10px] font-bold text-white flex items-center justify-center">
+            AI
+          </span>
+        </button>
+
+        {/* Notifications */}
+        <NotificationBell />
+
+        {/* Profile */}
+        <ProfileDropdown onNavigate={onPageChange} />
+      </div>
+    </header>
+  );
+}
