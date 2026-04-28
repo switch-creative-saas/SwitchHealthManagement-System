@@ -339,7 +339,15 @@ export function BillingPage() {
               </div>
             </PopoverContent>
           </Popover>
-          <Button className="bg-gradient-to-r from-royal-500 to-royal-700 text-white gap-2 rounded-xl" onClick={() => setInvoiceOpen(true)} disabled={!canCreateInvoice}>
+          <Button
+            data-tour-id="billing-new-invoice"
+            className="bg-gradient-to-r from-royal-500 to-royal-700 text-white gap-2 rounded-xl"
+            onClick={() => {
+              setInvoiceOpen(true);
+              window.dispatchEvent(new CustomEvent('switch-health:tour-trigger', { detail: { tourId: 'micro-billing-first' } }));
+            }}
+            disabled={!canCreateInvoice}
+          >
             <Plus className="w-4 h-4" />
             New Invoice
           </Button>

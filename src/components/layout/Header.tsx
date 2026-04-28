@@ -59,7 +59,9 @@ export function Header({ title, onAIClick, onPageChange }: HeaderProps) {
       </div>
 
       {/* Center: Search (responsive) */}
-      <GlobalSearch />
+      <div data-tour-id="global-search">
+        <GlobalSearch />
+      </div>
 
       {/* Right: Actions */}
       <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">

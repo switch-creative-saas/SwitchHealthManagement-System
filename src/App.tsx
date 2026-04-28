@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { LifeBuoy } from 'lucide-react';
 import { ResponsiveProvider } from '@/contexts/ResponsiveContext';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { SubscriptionProvider } from '@/contexts/SubscriptionContext';
@@ -23,10 +24,28 @@ import { AdministrationPage } from '@/pages/AdministrationPage';
 import { SubscriptionPage } from '@/pages/SubscriptionPage';
 import { AuditLogsPage } from '@/pages/AuditLogsPage';
 import { SettingsPage } from '@/pages/SettingsPage';
+import { HelpSupportPage } from '@/pages/HelpSupportPage';
+import { AuthGatewayPage } from '@/pages/AuthGatewayPage';
 import { Toaster } from '@/components/ui/sonner';
 import type { PageType } from '@/types';
+import { GuidedTourProvider } from '@/contexts/GuidedTourContext';
+import { useAuth } from '@/contexts/AuthContext';
 
 function App() {
+  return (
+    <ResponsiveProvider>
+      <AuthProvider>
+        <SubscriptionProvider>
+          <AppShell />
+        </SubscriptionProvider>
+      </AuthProvider>
+    </ResponsiveProvider>
+  );
+}
+
+function AppShell() {
+  const { currentRole, userName, setCurrentRole, setUserProfile } = useAuth();
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => Boolean(localStorage.getItem('switch-health-auth-session')));
   const [currentPage, setCurrentPage] = useState<PageType>('dashboard');
   const [guliaPanelOpen, setGuliaPanelOpen] = useState(false);
   const [emrSwitchId, setEmrSwitchId] = useState<string | null>(null);
@@ -136,6 +155,8 @@ function App() {
         return <AuditLogsPage />;
       case 'settings':
         return <SettingsPage />;
+      case 'help':
+        return <HelpSupportPage />;
       default:
         return <DashboardPage />;
     }
@@ -177,46 +198,63 @@ function App() {
         return 'Security & Audit';
       case 'settings':
         return 'Settings';
+      case 'help':
+        return 'Help & Support';
       default:
         return 'Dashboard';
     }
   };
 
-  return (
-    <ResponsiveProvider>
-      <AuthProvider>
-        <SubscriptionProvider>
-          <div className="app-shell flex h-screen overflow-hidden">
-            <Sidebar 
-              currentPage={currentPage} 
-              onPageChange={(page) => navigateToPage(page as PageType)}
-            />
-            
-            <div className="flex-1 flex flex-col min-w-0 relative">
-              <Header 
-                title={getPageTitle()} 
-                onAIClick={() => setGuliaPanelOpen(!guliaPanelOpen)}
-                onPageChange={(page) => navigateToPage(page as PageType)}
-              />
-              
-              <main className="flex-1 overflow-auto p-4 sm:p-6 page-transition">
-                <div className="max-w-7xl mx-auto">
-                  {renderPage()}
-                </div>
-              </main>
-            </div>
+  const handleAuthenticated = (payload: { role: typeof currentRole; name: string; email: string; redirectPage: PageType }) => {
+    setCurrentRole(payload.role);
+    setUserProfile({ name: payload.name, email: payload.email, avatar: payload.name.split(' ').map((part) => part[0]).slice(0, 2).join('') });
+    setIsAuthenticated(true);
+    setCurrentPage(payload.redirectPage);
+    window.history.pushState({}, '', '/');
+  };
 
-            <GuliaAIPanel 
-              isOpen={guliaPanelOpen} 
-              onClose={() => setGuliaPanelOpen(false)} 
-            />
-            
-            <AIFloatingButton onClick={() => setGuliaPanelOpen(!guliaPanelOpen)} />
-            <Toaster position="top-right" />
-          </div>
-        </SubscriptionProvider>
-      </AuthProvider>
-    </ResponsiveProvider>
+  if (!isAuthenticated) {
+    return <AuthGatewayPage onAuthenticated={handleAuthenticated} defaultTheme={document.documentElement.classList.contains('dark-theme') ? 'dark' : 'light'} />;
+  }
+
+  return (
+    <GuidedTourProvider currentPage={currentPage} currentRole={currentRole} userName={userName} onNavigate={navigateToPage}>
+      <div className="app-shell flex h-screen overflow-hidden">
+        <Sidebar 
+          currentPage={currentPage} 
+          onPageChange={(page) => navigateToPage(page as PageType)}
+        />
+        
+        <div className="flex-1 flex flex-col min-w-0 relative">
+          <Header 
+            title={getPageTitle()} 
+            onAIClick={() => setGuliaPanelOpen(!guliaPanelOpen)}
+            onPageChange={(page) => navigateToPage(page as PageType)}
+          />
+          
+          <main className="flex-1 overflow-auto p-4 sm:p-6 page-transition">
+            <div className="max-w-7xl mx-auto">
+              {renderPage()}
+            </div>
+          </main>
+        </div>
+
+        <GuliaAIPanel 
+          isOpen={guliaPanelOpen} 
+          onClose={() => setGuliaPanelOpen(false)} 
+        />
+        
+        <button
+          onClick={() => navigateToPage('help')}
+          className="fixed bottom-24 right-6 z-30 w-12 h-12 rounded-full bg-white/85 backdrop-blur-md border border-white/60 shadow-lg flex items-center justify-center text-royal-700 hover:scale-105 transition-transform"
+          title="Help & Support"
+        >
+          <LifeBuoy className="w-5 h-5" />
+        </button>
+        <AIFloatingButton onClick={() => setGuliaPanelOpen(!guliaPanelOpen)} />
+        <Toaster position="top-right" />
+      </div>
+    </GuidedTourProvider>
   );
 }
 

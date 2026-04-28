@@ -729,10 +729,14 @@ export function LaboratoryPage() {
                   onChange={(e) => onBulkCsv(e.target.files?.[0] ?? null)}
                 />
                 <Button
+                  data-tour-id="lab-bulk-upload"
                   variant="outline"
                   size="sm"
                   className="gap-1.5 rounded-xl border-[#1E1B8F]/20"
-                  onClick={() => bulkCsvInputRef.current?.click()}
+                  onClick={() => {
+                    bulkCsvInputRef.current?.click();
+                    window.dispatchEvent(new CustomEvent('switch-health:tour-trigger', { detail: { tourId: 'micro-lab-upload' } }));
+                  }}
                 >
                   <Upload className="w-4 h-4" />
                   Bulk CSV

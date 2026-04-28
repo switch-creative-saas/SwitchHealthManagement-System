@@ -15,7 +15,8 @@ export type UserRole =
   | 'pharmacist'
   | 'billing-officer'
   | 'insurance-officer'
-  | 'it-officer';
+  | 'it-officer'
+  | 'support-agent';
 
 type PermissionAction = 'view' | 'create' | 'edit' | 'delete' | 'export' | 'approve';
 
@@ -161,6 +162,16 @@ const ROLE_CONFIGS: Record<UserRole, RoleConfig> = {
       { module: 'Settings', actions: ['view', 'edit'] },
     ],
   },
+  'support-agent': {
+    name: 'Support Agent',
+    description: 'Internal support operations',
+    permissions: [
+      { module: 'Dashboard', actions: ['view'] },
+      { module: 'Settings', actions: ['view', 'create', 'edit'] },
+      { module: 'Administration', actions: ['view'] },
+      { module: 'Analytics', actions: ['view'] },
+    ],
+  },
 };
 
 const MODULE_MAP: Record<string, string> = {
@@ -178,6 +189,7 @@ const MODULE_MAP: Record<string, string> = {
   'subscription': 'Settings',
   'audit-logs': 'Settings',
   'settings': 'Settings',
+  'help': 'Settings',
 };
 
 // ============================================
@@ -208,6 +220,8 @@ export interface AuthContextType {
   userName: string;
   userEmail: string;
   userAvatar: string;
+  setUserProfile: (profile: { name: string; email: string; avatar?: string }) => void;
+  clearUserProfile: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -220,6 +234,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   });
 
   const roleConfig = ROLE_CONFIGS[currentRole];
+  const [userProfile, setUserProfileState] = useState<{ name: string; email: string; avatar?: string } | null>(() => {
+    const raw = localStorage.getItem('switch-health-user-profile');
+    if (!raw) return null;
+    try {
+      return JSON.parse(raw) as { name: string; email: string; avatar?: string };
+    } catch {
+      return null;
+    }
+  });
 
   const hasPermission = (module: string, action: string): boolean => {
     if (currentRole === 'super-admin') return true;
@@ -253,6 +276,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     'billing-officer': { name: 'Billing Officer Ngozi', email: 'n.obi@switchhealth.ng', avatar: 'BN' },
     'insurance-officer': { name: 'Insurance Officer Chika', email: 'insurance@switchhealth.ng', avatar: 'IO' },
     'it-officer': { name: 'IT Officer Michael', email: 'it@switchhealth.ng', avatar: 'IM' },
+    'support-agent': { name: 'Support Agent Grace', email: 'support@switchhealth.ng', avatar: 'SG' },
   };
 
   const userInfo = roleDisplayInfo[currentRole];
@@ -260,6 +284,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const handleSetRole = (role: UserRole) => {
     setCurrentRole(role);
     localStorage.setItem('switch-health-role', role);
+  };
+
+  const setUserProfile = (profile: { name: string; email: string; avatar?: string }) => {
+    setUserProfileState(profile);
+    localStorage.setItem('switch-health-user-profile', JSON.stringify(profile));
+  };
+
+  const clearUserProfile = () => {
+    setUserProfileState(null);
+    localStorage.removeItem('switch-health-user-profile');
   };
 
   return (
@@ -285,9 +319,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         isPharmacist: currentRole === 'pharmacist',
         isBillingOfficer: currentRole === 'billing-officer',
         isHospitalAdmin: currentRole === 'hospital-admin',
-        userName: userInfo?.name ?? 'User',
-        userEmail: userInfo?.email ?? 'user@switchhealth.ng',
-        userAvatar: userInfo?.avatar ?? 'U',
+        userName: userProfile?.name ?? userInfo?.name ?? 'User',
+        userEmail: userProfile?.email ?? userInfo?.email ?? 'user@switchhealth.ng',
+        userAvatar: userProfile?.avatar ?? userInfo?.avatar ?? 'U',
+        setUserProfile,
+        clearUserProfile,
       }}
     >
       {children}

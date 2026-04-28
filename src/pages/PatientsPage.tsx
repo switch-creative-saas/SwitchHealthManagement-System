@@ -191,7 +191,15 @@ export function PatientsPage({ onOpenPatientEmr }: PatientsPageProps) {
           <Button variant="outline" onClick={() => exportRows('filtered', 'csv')} className="gap-2"><Download className="w-4 h-4" />Export CSV</Button>
           <Button variant="outline" onClick={() => exportRows('all', 'xlsx')}>Excel</Button>
           <Button variant="outline" onClick={() => exportRows('filtered', 'pdf')}>PDF</Button>
-          <Button className="bg-gradient-to-r from-royal-600 to-royal-800 text-white gap-2" onClick={() => setWizardOpen(true)} disabled={!canCreate('Patients')}>
+          <Button
+            data-tour-id="patients-add"
+            className="bg-gradient-to-r from-royal-600 to-royal-800 text-white gap-2"
+            onClick={() => {
+              setWizardOpen(true);
+              window.dispatchEvent(new CustomEvent('switch-health:tour-trigger', { detail: { tourId: 'micro-new-patient' } }));
+            }}
+            disabled={!canCreate('Patients')}
+          >
             <Plus className="w-4 h-4" />Add Patient
           </Button>
         </div>

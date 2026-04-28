@@ -15,6 +15,7 @@ const roles = [
   { id: 'billing-officer' as const, label: 'Billing Officer', icon: CreditCard, color: 'bg-orange-100 text-orange-700', description: 'Billing & insurance' },
   { id: 'insurance-officer' as const, label: 'Insurance Officer', icon: FileCheck2, color: 'bg-cyan-100 text-cyan-700', description: 'Claims processing' },
   { id: 'it-officer' as const, label: 'IT Officer', icon: Monitor, color: 'bg-slate-100 text-slate-700', description: 'System & security' },
+  { id: 'support-agent' as const, label: 'Support Agent', icon: Shield, color: 'bg-fuchsia-100 text-fuchsia-700', description: 'Support tickets & user assistance' },
 ];
 
 export function RoleSwitcher() {

@@ -214,6 +214,7 @@ function SidebarContent({ currentPage, onPageChange, expanded, navItems, bottomN
             <button
               key={item.id}
               onClick={() => onPageChange(item.id)}
+              data-tour-id={`sidebar-${item.id}`}
               className={cn(
                 "w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200",
                 isActive 
@@ -262,6 +263,7 @@ function SidebarContent({ currentPage, onPageChange, expanded, navItems, bottomN
             <button
               key={item.id}
               onClick={() => onPageChange(item.id)}
+              data-tour-id={`sidebar-${item.id}`}
               className={cn(
                 "w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200",
                 isActive 
@@ -279,10 +281,16 @@ function SidebarContent({ currentPage, onPageChange, expanded, navItems, bottomN
         
         {/* Help */}
         <button
+          onClick={() => onPageChange('help')}
+          data-tour-id="sidebar-help"
           className={cn(
-            "w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-white/60 hover:bg-white/10 hover:text-white transition-all duration-200 border border-transparent",
+            "w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 border",
+            currentPage === 'help'
+              ? "bg-[#D4AF37]/20 text-[#D4AF37] border-[#D4AF37]/30"
+              : "text-white/60 hover:bg-white/10 hover:text-white border-transparent",
             !expanded && "justify-center px-2"
           )}
+          title={!expanded ? 'Help & Support' : undefined}
         >
           <HelpCircle className="w-5 h-5 flex-shrink-0" />
           {expanded && <span>Help & Support</span>}

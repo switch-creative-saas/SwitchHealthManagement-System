@@ -261,7 +261,12 @@ export function AppointmentsPage() {
               <button onClick={() => setView('calendar')} className={cn('px-3 py-1.5 rounded-md text-sm', view === 'calendar' ? 'bg-white text-royal-700' : 'text-gray-600')}>Calendar</button>
               <button onClick={() => setView('list')} className={cn('px-3 py-1.5 rounded-md text-sm', view === 'list' ? 'bg-white text-royal-700' : 'text-gray-600')}>List</button>
           </div>
-            <Button className="bg-gradient-to-r from-royal-500 to-royal-700 text-white gap-2" onClick={() => setShowNewModal(true)} disabled={!canCreateAppointment}>
+            <Button
+              data-tour-id="appointments-new"
+              className="bg-gradient-to-r from-royal-500 to-royal-700 text-white gap-2"
+              onClick={() => setShowNewModal(true)}
+              disabled={!canCreateAppointment}
+            >
             <Plus className="w-4 h-4" />
             New Appointment
           </Button>
