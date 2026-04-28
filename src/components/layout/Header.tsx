@@ -12,9 +12,11 @@ interface HeaderProps {
   title: string;
   onAIClick: () => void;
   onPageChange: (page: string) => void;
+  onLogout: () => void;
+  onDeleteAccount: () => void;
 }
 
-export function Header({ title, onAIClick, onPageChange }: HeaderProps) {
+export function Header({ title, onAIClick, onPageChange, onLogout, onDeleteAccount }: HeaderProps) {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [theme, setTheme] = useState<ThemeMode>(() => getSavedTheme());
@@ -122,7 +124,7 @@ export function Header({ title, onAIClick, onPageChange }: HeaderProps) {
         </DropdownMenu>
 
         {/* Profile */}
-        <ProfileDropdown onNavigate={onPageChange} />
+        <ProfileDropdown onNavigate={onPageChange} onLogout={onLogout} onDeleteAccount={onDeleteAccount} />
       </div>
     </header>
   );

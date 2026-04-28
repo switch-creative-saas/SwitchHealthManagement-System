@@ -1,13 +1,15 @@
 import { useState, useRef, useEffect } from 'react';
-import { User, Settings, Shield, CreditCard, LogOut, ChevronRight, Crown } from 'lucide-react';
+import { User, Settings, Shield, CreditCard, LogOut, ChevronRight, Crown, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface ProfileDropdownProps {
   onNavigate: (page: string) => void;
+  onLogout: () => void;
+  onDeleteAccount: () => void;
 }
 
-export function ProfileDropdown({ onNavigate }: ProfileDropdownProps) {
+export function ProfileDropdown({ onNavigate, onLogout, onDeleteAccount }: ProfileDropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const { userName, userEmail, userAvatar, currentRole, isSuperAdmin } = useAuth();
@@ -123,11 +125,11 @@ export function ProfileDropdown({ onNavigate }: ProfileDropdownProps) {
           {/* Divider */}
           <div className="mx-2 h-px bg-gray-100" />
 
-          {/* Logout */}
+          {/* Account Actions */}
           <div className="p-2">
             <button
               onClick={() => {
-                console.log('Logout');
+                onLogout();
                 setIsOpen(false);
               }}
               className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-all duration-150 hover:bg-red-50 group"
@@ -136,6 +138,20 @@ export function ProfileDropdown({ onNavigate }: ProfileDropdownProps) {
                 <LogOut className="w-4 h-4 text-red-500" />
               </div>
               <span className="text-sm font-medium text-red-600">Logout</span>
+            </button>
+            <button
+              onClick={() => {
+                const confirmed = window.confirm('Delete this account permanently? This cannot be undone.');
+                if (!confirmed) return;
+                onDeleteAccount();
+                setIsOpen(false);
+              }}
+              className="w-full mt-1 flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-all duration-150 hover:bg-red-50 group"
+            >
+              <div className="w-8 h-8 rounded-lg bg-red-100 flex items-center justify-center group-hover:bg-red-200 transition-colors">
+                <Trash2 className="w-4 h-4 text-red-500" />
+              </div>
+              <span className="text-sm font-medium text-red-600">Delete Account</span>
             </button>
           </div>
         </div>

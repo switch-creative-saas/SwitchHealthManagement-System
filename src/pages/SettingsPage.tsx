@@ -12,11 +12,13 @@ import {
   Lock,
   Monitor,
   Moon,
+  LogOut,
   Save,
   Search,
   Shield,
   Smartphone,
   Sun,
+  Trash2,
   Upload,
   User,
   Wifi,
@@ -64,7 +66,12 @@ const roleOptions: { label: string; value: UserRole }[] = [
   { label: 'Lab Scientist', value: 'lab-scientist' },
 ];
 
-export function SettingsPage() {
+interface SettingsPageProps {
+  onLogout: () => void;
+  onDeleteAccount: () => void;
+}
+
+export function SettingsPage({ onLogout, onDeleteAccount }: SettingsPageProps) {
   const { currentRole, setCurrentRole, userName, userEmail, hasPermission } = useAuth();
   const { subscription, hasAccess, DEV_OVERRIDE, addAudit } = useSubscription();
   const { toursEnabled, setToursEnabled, resetOnboarding, replayCurrentRoleTour, startRoleOnboarding } = useGuidedTour();
@@ -72,6 +79,8 @@ export function SettingsPage() {
   const [query, setQuery] = useState('');
   const [loading, setLoading] = useState(false);
   const [showPasswordDialog, setShowPasswordDialog] = useState(false);
+  const [showLogoutDialog, setShowLogoutDialog] = useState(false);
+  const [showDeleteAccountDialog, setShowDeleteAccountDialog] = useState(false);
   const [savingSection, setSavingSection] = useState<SettingsTab | null>(null);
   const [dirty, setDirty] = useState(false);
   const [offlineMode, setOfflineMode] = useState(true);
@@ -253,6 +262,18 @@ export function SettingsPage() {
     setQuery('');
   };
 
+  const handleLogout = () => {
+    setShowLogoutDialog(false);
+    toast.success('You have been logged out');
+    onLogout();
+  };
+
+  const handleDeleteAccount = () => {
+    setShowDeleteAccountDialog(false);
+    toast.success('Account deleted');
+    onDeleteAccount();
+  };
+
   return (
     <div className="space-y-6 page-transition">
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
@@ -371,6 +392,21 @@ export function SettingsPage() {
                   {savingSection === 'profile' ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
                   Save Changes
                 </Button>
+              </div>
+
+              <div className="mt-6 rounded-xl border border-red-100 bg-red-50 p-4">
+                <h3 className="text-sm font-semibold text-red-800">Account Actions</h3>
+                <p className="text-xs text-red-700 mt-1">Use these actions when you need to end your session or remove your account.</p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <Button variant="outline" className="border-red-200 text-red-700 hover:bg-red-100" onClick={() => setShowLogoutDialog(true)}>
+                    <LogOut className="w-4 h-4 mr-2" />
+                    Logout
+                  </Button>
+                  <Button variant="outline" className="border-red-300 text-red-700 hover:bg-red-100" onClick={() => setShowDeleteAccountDialog(true)}>
+                    <Trash2 className="w-4 h-4 mr-2" />
+                    Delete Account
+                  </Button>
+                </div>
               </div>
             </div>
           )}
@@ -816,6 +852,38 @@ export function SettingsPage() {
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowPasswordDialog(false)}>Cancel</Button>
             <Button className="bg-gradient-to-r from-royal-500 to-royal-700 text-white" onClick={handlePasswordChange}>Update Password</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showLogoutDialog} onOpenChange={setShowLogoutDialog}>
+        <DialogContent className="glass-panel border-white/60 max-w-md">
+          <DialogHeader>
+            <DialogTitle>Logout</DialogTitle>
+            <DialogDescription>Are you sure you want to logout from this device?</DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowLogoutDialog(false)}>Cancel</Button>
+            <Button className="bg-gradient-to-r from-royal-500 to-royal-700 text-white" onClick={handleLogout}>
+              <LogOut className="w-4 h-4 mr-2" />
+              Logout
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showDeleteAccountDialog} onOpenChange={setShowDeleteAccountDialog}>
+        <DialogContent className="glass-panel border-white/60 max-w-md">
+          <DialogHeader>
+            <DialogTitle>Delete Account</DialogTitle>
+            <DialogDescription>This action is permanent. Your account profile and saved onboarding record will be removed.</DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowDeleteAccountDialog(false)}>Cancel</Button>
+            <Button className="bg-red-600 hover:bg-red-700 text-white" onClick={handleDeleteAccount}>
+              <Trash2 className="w-4 h-4 mr-2" />
+              Delete Account
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

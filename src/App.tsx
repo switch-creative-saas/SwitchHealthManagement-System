@@ -44,7 +44,7 @@ function App() {
 }
 
 function AppShell() {
-  const { currentRole, userName, setCurrentRole, setUserProfile } = useAuth();
+  const { currentRole, userName, userEmail, setCurrentRole, setUserProfile, clearUserProfile } = useAuth();
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => Boolean(localStorage.getItem('switch-health-auth-session')));
   const [currentPage, setCurrentPage] = useState<PageType>('dashboard');
   const [guliaPanelOpen, setGuliaPanelOpen] = useState(false);
@@ -154,7 +154,7 @@ function AppShell() {
       case 'audit-logs':
         return <AuditLogsPage />;
       case 'settings':
-        return <SettingsPage />;
+        return <SettingsPage onLogout={handleLogout} onDeleteAccount={handleDeleteAccount} />;
       case 'help':
         return <HelpSupportPage />;
       default:
@@ -213,6 +213,30 @@ function AppShell() {
     window.history.pushState({}, '', '/');
   };
 
+  const handleLogout = () => {
+    localStorage.removeItem('switch-health-auth-session');
+    setIsAuthenticated(false);
+    setCurrentPage('dashboard');
+    setGuliaPanelOpen(false);
+    window.history.pushState({}, '', '/');
+  };
+
+  const handleDeleteAccount = () => {
+    const rawUsers = localStorage.getItem('switch-health-auth-users');
+    if (rawUsers) {
+      try {
+        const users = JSON.parse(rawUsers) as Array<{ email?: string }>;
+        const nextUsers = users.filter((user) => user.email?.toLowerCase() !== userEmail.toLowerCase());
+        localStorage.setItem('switch-health-auth-users', JSON.stringify(nextUsers));
+      } catch {
+        // Keep fail-safe behavior: if users payload is invalid, continue logout flow.
+      }
+    }
+    localStorage.removeItem(`switch-health-onboarding-complete-${userEmail.toLowerCase()}`);
+    clearUserProfile();
+    handleLogout();
+  };
+
   if (!isAuthenticated) {
     return <AuthGatewayPage onAuthenticated={handleAuthenticated} defaultTheme={document.documentElement.classList.contains('dark-theme') ? 'dark' : 'light'} />;
   }
@@ -230,6 +254,8 @@ function AppShell() {
             title={getPageTitle()} 
             onAIClick={() => setGuliaPanelOpen(!guliaPanelOpen)}
             onPageChange={(page) => navigateToPage(page as PageType)}
+            onLogout={handleLogout}
+            onDeleteAccount={handleDeleteAccount}
           />
           
           <main className="flex-1 overflow-auto p-4 sm:p-6 page-transition">
