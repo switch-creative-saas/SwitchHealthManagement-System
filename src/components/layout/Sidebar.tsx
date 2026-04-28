@@ -10,6 +10,7 @@ import {
   BarChart3, 
   Settings, 
   HelpCircle,
+  Lock,
   ChevronLeft,
   ChevronRight,
   Sparkles,
@@ -26,6 +27,7 @@ import {
 import { cn } from '@/lib/utils';
 import { useResponsive } from '@/contexts/ResponsiveContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { useSubscription, type FeatureKey } from '@/contexts/SubscriptionContext';
 import type { PageType } from '@/types';
 
 interface SidebarProps {
@@ -66,6 +68,17 @@ const bottomNavItems: NavItem[] = [
 export function Sidebar({ currentPage, onPageChange }: SidebarProps) {
   const { isMobile, sidebarOpen, setSidebarOpen, sidebarCollapsed, setSidebarCollapsed } = useResponsive();
   const { canView, isSuperAdmin } = useAuth();
+  const { hasAccess } = useSubscription();
+
+  const pageFeatureMap: Partial<Record<PageType, FeatureKey>> = {
+    telemedicine: 'telemedicine',
+    'ai-clinical-intelligence': 'ai_limited',
+    'switch-network': 'multi_hospital',
+    laboratory: 'laboratory',
+    pharmacy: 'pharmacy',
+    billing: 'billing',
+    analytics: 'analytics_advanced',
+  };
 
   const handleNavClick = (id: PageType) => {
     onPageChange(id);
@@ -74,7 +87,10 @@ export function Sidebar({ currentPage, onPageChange }: SidebarProps) {
 
   const filteredNavItems = navItems.filter(item => {
     if (isSuperAdmin) return true;
-    return canView(item.module);
+    const canSeeByRole = canView(item.module);
+    const requiredFeature = pageFeatureMap[item.id];
+    const canSeeByPlan = requiredFeature ? hasAccess(requiredFeature) : true;
+    return canSeeByRole && canSeeByPlan;
   });
 
   const filteredBottomNav = bottomNavItems.filter(item => {
@@ -212,6 +228,7 @@ function SidebarContent({ currentPage, onPageChange, expanded, navItems, bottomN
                 isActive && "scale-110"
               )} />
               {expanded && <span>{item.label}</span>}
+              {expanded && item.id === 'subscription' && <Lock className="w-3.5 h-3.5 text-white/50 ml-auto" />}
               
               {isActive && expanded && (
                 <div className="ml-auto w-1.5 h-1.5 rounded-full bg-[#D4AF37] animate-pulse" />

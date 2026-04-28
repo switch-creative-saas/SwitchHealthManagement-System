@@ -1,10 +1,12 @@
-import { Wifi, WifiOff } from 'lucide-react';
+import { ChevronDown, Laptop, Moon, Sun, Wifi, WifiOff } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useResponsive } from '@/contexts/ResponsiveContext';
 import { GlobalSearch } from '@/components/search/GlobalSearch';
 import { NotificationBell } from '@/components/notifications/NotificationBell';
 import { ProfileDropdown } from '@/components/profile/ProfileDropdown';
 import { useState, useEffect } from 'react';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { applyTheme, getSavedTheme, type ThemeMode } from '@/lib/theme';
 
 interface HeaderProps {
   title: string;
@@ -15,6 +17,7 @@ interface HeaderProps {
 export function Header({ title, onAIClick, onPageChange }: HeaderProps) {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [theme, setTheme] = useState<ThemeMode>(() => getSavedTheme());
   const { isMobile } = useResponsive();
 
   useEffect(() => {
@@ -33,8 +36,13 @@ export function Header({ title, onAIClick, onPageChange }: HeaderProps) {
     };
   }, []);
 
+  const setThemeMode = (mode: ThemeMode) => {
+    setTheme(mode);
+    applyTheme(mode);
+  };
+
   return (
-    <header className="h-20 px-4 sm:px-6 flex items-center justify-between bg-white/80 backdrop-blur-xl border-b border-white/60 sticky top-0 z-10">
+    <header className="h-20 px-4 sm:px-6 flex items-center justify-between bg-[color:var(--bg-card)]/80 backdrop-blur-xl border-b border-[color:var(--border-color)] sticky top-0 z-10">
       {/* Left: Title & Mobile Spacer */}
       <div className={cn("flex items-center gap-4", isMobile && "ml-12")}>
         <div>
@@ -83,6 +91,33 @@ export function Header({ title, onAIClick, onPageChange }: HeaderProps) {
 
         {/* Notifications */}
         <NotificationBell />
+
+        {/* Theme Switcher */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button className="flex items-center gap-2 px-3 py-2 rounded-xl bg-[color:var(--bg-card)]/70 border border-[color:var(--border)] text-[color:var(--text-primary)] transition-all duration-200 hover:shadow-md">
+              {theme === 'light' && <Sun className="w-4 h-4 text-amber-500" />}
+              {theme === 'dark' && <Moon className="w-4 h-4 text-indigo-300" />}
+              {theme === 'system' && <Laptop className="w-4 h-4 text-sky-400" />}
+              <span className="hidden sm:inline text-xs font-medium capitalize">{theme}</span>
+              <ChevronDown className="w-3.5 h-3.5 text-[color:var(--text-secondary)]" />
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="glass-panel border-[color:var(--border)]">
+            <DropdownMenuItem onClick={() => setThemeMode('light')}>
+              <Sun className="w-4 h-4 mr-2 text-amber-500" />
+              Light
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setThemeMode('dark')}>
+              <Moon className="w-4 h-4 mr-2 text-indigo-300" />
+              Dark
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setThemeMode('system')}>
+              <Laptop className="w-4 h-4 mr-2 text-sky-400" />
+              System
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
 
         {/* Profile */}
         <ProfileDropdown onNavigate={onPageChange} />

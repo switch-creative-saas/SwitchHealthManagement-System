@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { ResponsiveProvider } from '@/contexts/ResponsiveContext';
 import { AuthProvider } from '@/contexts/AuthContext';
+import { SubscriptionProvider } from '@/contexts/SubscriptionContext';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { Header } from '@/components/layout/Header';
 import { GuliaAIPanel } from '@/components/ai/GuliaAIPanel';
@@ -55,8 +56,28 @@ function App() {
   useEffect(() => {
     parseRoute();
     const onPopState = () => parseRoute();
+    const onAppNavigate = (event: Event) => {
+      const detail = (event as CustomEvent<{ path?: string; page?: PageType; switchId?: string }>).detail;
+      if (!detail) return;
+      if (detail.switchId) {
+        openEmrForPatient(detail.switchId);
+        return;
+      }
+      if (detail.page) {
+        navigateToPage(detail.page);
+        return;
+      }
+      if (detail.path) {
+        window.history.pushState({}, '', detail.path);
+        parseRoute();
+      }
+    };
     window.addEventListener('popstate', onPopState);
-    return () => window.removeEventListener('popstate', onPopState);
+    window.addEventListener('app:navigate', onAppNavigate as EventListener);
+    return () => {
+      window.removeEventListener('popstate', onPopState);
+      window.removeEventListener('app:navigate', onAppNavigate as EventListener);
+    };
   }, []);
 
   const navigateToPage = (page: PageType) => {
@@ -164,34 +185,36 @@ function App() {
   return (
     <ResponsiveProvider>
       <AuthProvider>
-        <div className="flex h-screen bg-gradient-to-br from-slate-50 via-white to-royal-50 overflow-hidden">
-          <Sidebar 
-            currentPage={currentPage} 
-            onPageChange={(page) => navigateToPage(page as PageType)}
-          />
-          
-          <div className="flex-1 flex flex-col min-w-0 relative">
-            <Header 
-              title={getPageTitle()} 
-              onAIClick={() => setGuliaPanelOpen(!guliaPanelOpen)}
+        <SubscriptionProvider>
+          <div className="app-shell flex h-screen overflow-hidden">
+            <Sidebar 
+              currentPage={currentPage} 
               onPageChange={(page) => navigateToPage(page as PageType)}
             />
             
-            <main className="flex-1 overflow-auto p-4 sm:p-6 page-transition">
-              <div className="max-w-7xl mx-auto">
-                {renderPage()}
-              </div>
-            </main>
-          </div>
+            <div className="flex-1 flex flex-col min-w-0 relative">
+              <Header 
+                title={getPageTitle()} 
+                onAIClick={() => setGuliaPanelOpen(!guliaPanelOpen)}
+                onPageChange={(page) => navigateToPage(page as PageType)}
+              />
+              
+              <main className="flex-1 overflow-auto p-4 sm:p-6 page-transition">
+                <div className="max-w-7xl mx-auto">
+                  {renderPage()}
+                </div>
+              </main>
+            </div>
 
-          <GuliaAIPanel 
-            isOpen={guliaPanelOpen} 
-            onClose={() => setGuliaPanelOpen(false)} 
-          />
-          
-          <AIFloatingButton onClick={() => setGuliaPanelOpen(!guliaPanelOpen)} />
-          <Toaster position="top-right" />
-        </div>
+            <GuliaAIPanel 
+              isOpen={guliaPanelOpen} 
+              onClose={() => setGuliaPanelOpen(false)} 
+            />
+            
+            <AIFloatingButton onClick={() => setGuliaPanelOpen(!guliaPanelOpen)} />
+            <Toaster position="top-right" />
+          </div>
+        </SubscriptionProvider>
       </AuthProvider>
     </ResponsiveProvider>
   );

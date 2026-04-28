@@ -3,6 +3,7 @@ import { Clock3, FileUp, Mic, MonitorUp, PhoneCall, ShieldCheck, Timer, Upload, 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/contexts/AuthContext';
+import { useSubscription } from '@/contexts/SubscriptionContext';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 
@@ -10,6 +11,7 @@ type TeleTab = 'patient-consultation' | 'specialist-conference';
 
 export function TelemedicinePage() {
   const { currentRole, canCreate, canView } = useAuth();
+  const { hasAccess } = useSubscription();
   const [activeTab, setActiveTab] = useState<TeleTab>('patient-consultation');
   const [waiting, setWaiting] = useState(['Adebayo Johnson', 'Chioma Okonkwo']);
   const [sessionStarted, setSessionStarted] = useState(false);
@@ -31,6 +33,9 @@ export function TelemedicinePage() {
 
   if (!canView('Appointments')) {
     return <div className="rounded-2xl border border-red-100 bg-red-50 p-6 text-red-700">Access denied by server RBAC policy.</div>;
+  }
+  if (!hasAccess('telemedicine')) {
+    return <div className="rounded-2xl border border-amber-100 bg-amber-50 p-6 text-amber-800">Telemedicine is locked on your current plan. Upgrade to Enterprise.</div>;
   }
 
   return (

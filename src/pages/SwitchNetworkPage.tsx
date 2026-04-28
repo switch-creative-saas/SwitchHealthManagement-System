@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
+import { useSubscription } from '@/contexts/SubscriptionContext';
 import { cn } from '@/lib/utils';
 
 type NetworkTab = 'directory' | 'referrals' | 'portability' | 'specialist-conference';
@@ -16,6 +17,7 @@ const hospitals = [
 
 export function SwitchNetworkPage() {
   const { currentRole, canView, canCreate } = useAuth();
+  const { hasAccess } = useSubscription();
   const [activeTab, setActiveTab] = useState<NetworkTab>('directory');
   const [filters, setFilters] = useState({ specialty: '', location: '', rating: '', service: '' });
   const [selectedHospital, setSelectedHospital] = useState<string>('');
@@ -37,6 +39,9 @@ export function SwitchNetworkPage() {
 
   if (!canView('Administration')) {
     return <div className="rounded-2xl border border-red-100 bg-red-50 p-6 text-red-700">Access denied by RBAC policy.</div>;
+  }
+  if (!hasAccess('multi_hospital')) {
+    return <div className="rounded-2xl border border-amber-100 bg-amber-50 p-6 text-amber-800">Multi-hospital networking is an Enterprise feature. Upgrade to continue.</div>;
   }
 
   return (

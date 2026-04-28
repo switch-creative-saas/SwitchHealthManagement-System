@@ -25,26 +25,34 @@
     --glass-border: 0 0% 100%;
     --glass-border-opacity: 0.4;
     
-    /* shadcn overrides */
-    --background: 0 0% 98%;
-    --foreground: 240 10% 3.9%;
+    /* Theme engine tokens */
+    --bg-main: #F8FAFC;
+    --bg-card: #FFFFFF;
+    --text-primary: #0F172A;
+    --text-secondary: #64748B;
+    --border-color: #E2E8F0;
+    --accent-color: #4F46E5;
+
+    /* shadcn overrides mapped from design tokens */
+    --background: 210 40% 98%;
+    --foreground: 222 47% 11%;
     --card: 0 0% 100%;
-    --card-foreground: 240 10% 3.9%;
+    --card-foreground: 222 47% 11%;
     --popover: 0 0% 100%;
-    --popover-foreground: 240 10% 3.9%;
-    --primary: 244 67% 33%;
+    --popover-foreground: 222 47% 11%;
+    --primary: 243 75% 59%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 240 4.8% 95.9%;
-    --secondary-foreground: 240 5.9% 10%;
-    --muted: 240 4.8% 95.9%;
-    --muted-foreground: 240 3.8% 46.1%;
+    --secondary: 214 32% 91%;
+    --secondary-foreground: 222 47% 11%;
+    --muted: 214 32% 91%;
+    --muted-foreground: 215 16% 47%;
     --accent: 46 65% 52%;
-    --accent-foreground: 240 5.9% 10%;
+    --accent-foreground: 222 47% 11%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
-    --border: 240 5.9% 90%;
-    --input: 240 5.9% 90%;
-    --ring: 244 67% 33%;
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 243 75% 59%;
     --radius: 1rem;
     
     /* Sidebar */
@@ -56,6 +64,44 @@
     --sidebar-accent-foreground: 0 0% 100%;
     --sidebar-border: 243 56% 40%;
     --sidebar-ring: 46 65% 52%;
+  }
+
+  .light-theme {
+    --bg-main: #F8FAFC;
+    --bg-card: #FFFFFF;
+    --text-primary: #0F172A;
+    --text-secondary: #64748B;
+    --border-color: #E2E8F0;
+    --accent-color: #4F46E5;
+  }
+
+  .dark-theme {
+    --bg-main: #0B1F3A;
+    --bg-card: #132F57;
+    --text-primary: #E2E8F0;
+    --text-secondary: #94A3B8;
+    --border-color: #1E3A6D;
+    --accent-color: #6366F1;
+
+    --background: 214 69% 14%;
+    --foreground: 210 40% 90%;
+    --card: 213 62% 21%;
+    --card-foreground: 210 40% 90%;
+    --popover: 214 58% 18%;
+    --popover-foreground: 210 40% 90%;
+    --primary: 239 84% 67%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 213 48% 28%;
+    --secondary-foreground: 210 40% 90%;
+    --muted: 213 48% 28%;
+    --muted-foreground: 216 21% 74%;
+    --accent: 46 65% 52%;
+    --accent-foreground: 222 47% 11%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 217 57% 27%;
+    --input: 217 57% 27%;
+    --ring: 239 84% 67%;
   }
 }
 
@@ -73,17 +119,31 @@
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
     font-feature-settings: 'cv11', 'ss01';
     font-variation-settings: 'opsz' 32;
+    background: var(--bg-main);
+    color: var(--text-primary);
+    transition: background-color 300ms ease, color 300ms ease;
+  }
+
+  .app-shell {
+    background: linear-gradient(180deg, var(--bg-main) 0%, color-mix(in srgb, var(--bg-main) 88%, var(--bg-card) 12%) 100%);
+    transition: background 300ms ease;
   }
 }
 
 @layer components {
   /* Glass Panel */
   .glass-panel {
-    background: rgba(255, 255, 255, 0.8);
+    background: color-mix(in srgb, var(--bg-card) 82%, transparent);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.4);
+    border: 1px solid color-mix(in srgb, var(--border-color) 70%, transparent);
     border-radius: 24px;
+    transition: background-color 300ms ease, border-color 300ms ease;
+  }
+
+  .dark-theme .glass-panel {
+    background: color-mix(in srgb, #102A4C 78%, transparent);
+    border: 1px solid color-mix(in srgb, var(--border-color) 85%, transparent);
   }
   
   .glass-card {
@@ -137,7 +197,10 @@
   
   /* Premium Card */
   .premium-card {
-    @apply bg-white rounded-3xl;
+    @apply rounded-3xl;
+    background: var(--bg-card);
+    color: var(--text-primary);
+    border: 1px solid color-mix(in srgb, var(--border-color) 75%, transparent);
     box-shadow: 
       0 2px 8px rgba(30, 27, 143, 0.06),
       0 8px 24px rgba(30, 27, 143, 0.08);
@@ -278,7 +341,10 @@
   
   /* Input Fields */
   .input-glass {
-    @apply w-full px-4 py-3 rounded-xl bg-white/70 border border-white/40;
+    @apply w-full px-4 py-3 rounded-xl;
+    background: color-mix(in srgb, var(--bg-card) 82%, transparent);
+    border: 1px solid color-mix(in srgb, var(--border-color) 75%, transparent);
+    color: var(--text-primary);
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
     transition: all 0.2s ease-out;
@@ -287,6 +353,128 @@
   .input-glass:focus {
     @apply outline-none border-[#1E1B8F]/30;
     box-shadow: 0 0 0 3px rgba(30, 27, 143, 0.1);
+  }
+
+  .dark-theme .input-glass::placeholder {
+    color: #94A3B8;
+  }
+
+  .dark-theme .glass-card,
+  .dark-theme .glass-subtle {
+    background: color-mix(in srgb, #102A4C 78%, transparent);
+    border-color: color-mix(in srgb, var(--border-color) 85%, transparent);
+  }
+
+  /* Global dark-theme readability overrides for existing utility usage */
+  .dark-theme .bg-white,
+  .dark-theme .bg-white\/70,
+  .dark-theme .bg-white\/80,
+  .dark-theme .bg-white\/90,
+  .dark-theme .bg-white\/20,
+  .dark-theme .bg-slate-50,
+  .dark-theme .bg-gray-50,
+  .dark-theme .bg-gray-100,
+  .dark-theme .bg-royal-50 {
+    background-color: var(--bg-card) !important;
+  }
+
+  .dark-theme .from-slate-50,
+  .dark-theme .via-white,
+  .dark-theme .to-royal-50 {
+    --tw-gradient-from: var(--bg-main) var(--tw-gradient-from-position) !important;
+    --tw-gradient-to: color-mix(in srgb, var(--bg-card) 72%, transparent) var(--tw-gradient-to-position) !important;
+    --tw-gradient-stops: var(--tw-gradient-from), color-mix(in srgb, var(--bg-main) 80%, var(--bg-card) 20%) var(--tw-gradient-via-position), var(--tw-gradient-to) !important;
+  }
+
+  .dark-theme .text-gray-900,
+  .dark-theme .text-gray-800,
+  .dark-theme .text-gray-700 {
+    color: var(--text-primary) !important;
+  }
+
+  .dark-theme .text-gray-600,
+  .dark-theme .text-gray-500,
+  .dark-theme .text-gray-400 {
+    color: var(--text-secondary) !important;
+  }
+
+  .dark-theme .text-royal-600,
+  .dark-theme .text-royal-700 {
+    color: #A5B4FC !important;
+  }
+
+  .dark-theme .bg-royal-100,
+  .dark-theme .bg-blue-50,
+  .dark-theme .bg-purple-100,
+  .dark-theme .bg-green-100,
+  .dark-theme .bg-amber-50,
+  .dark-theme .bg-red-50 {
+    background-color: color-mix(in srgb, #102A4C 78%, transparent) !important;
+    border-color: var(--border-color) !important;
+  }
+
+  .dark-theme .border-red-100,
+  .dark-theme .border-amber-100,
+  .dark-theme .border-blue-100,
+  .dark-theme .border-green-100,
+  .dark-theme .border-purple-100 {
+    border-color: var(--border-color) !important;
+  }
+
+  .dark-theme .text-red-700,
+  .dark-theme .text-red-600,
+  .dark-theme .text-amber-700,
+  .dark-theme .text-amber-600,
+  .dark-theme .text-blue-700,
+  .dark-theme .text-blue-600,
+  .dark-theme .text-green-700,
+  .dark-theme .text-green-600,
+  .dark-theme .text-purple-700,
+  .dark-theme .text-purple-600 {
+    color: var(--text-primary) !important;
+  }
+
+  .dark-theme .border-gray-50,
+  .dark-theme .border-gray-100,
+  .dark-theme .border-gray-200,
+  .dark-theme .border-white\/60,
+  .dark-theme .border-white\/40,
+  .dark-theme .border-royal-200,
+  .dark-theme .border-royal-300 {
+    border-color: var(--border-color) !important;
+  }
+
+  .dark-theme table tr:hover {
+    background: color-mix(in srgb, #102A4C 72%, transparent) !important;
+  }
+
+  .dark-theme .hover\:bg-gray-100:hover,
+  .dark-theme .hover\:bg-gray-50:hover,
+  .dark-theme .hover\:bg-royal-50:hover {
+    background-color: color-mix(in srgb, #102A4C 72%, transparent) !important;
+  }
+
+  .dark-theme .hover\:text-royal-600:hover {
+    color: #C7D2FE !important;
+  }
+
+  .dark-theme input,
+  .dark-theme textarea,
+  .dark-theme select {
+    background: #102A4C !important;
+    border-color: var(--border-color) !important;
+    color: var(--text-primary) !important;
+  }
+
+  .dark-theme input::placeholder,
+  .dark-theme textarea::placeholder {
+    color: var(--text-secondary) !important;
+  }
+
+  .dark-theme .shadow-xl,
+  .dark-theme .shadow-lg,
+  .dark-theme .shadow-sm {
+    --tw-shadow-color: rgba(11, 31, 58, 0.55);
   }
   
   /* Section Headers */

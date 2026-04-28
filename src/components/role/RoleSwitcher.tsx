@@ -1,4 +1,4 @@
-import { Shield, ChevronRight, Crown, Stethoscope, UserCircle, Pill, FlaskConical, CreditCard, Monitor } from 'lucide-react';
+import { Shield, ChevronRight, Crown, Stethoscope, UserCircle, Pill, FlaskConical, Microscope, CreditCard, FileCheck2, Monitor } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
@@ -10,8 +10,10 @@ const roles = [
   { id: 'nurse' as const, label: 'Nurse', icon: UserCircle, color: 'bg-pink-100 text-pink-700', description: 'Patient care & vitals' },
   { id: 'receptionist' as const, label: 'Receptionist', icon: UserCircle, color: 'bg-amber-100 text-amber-700', description: 'Appointments & registration' },
   { id: 'lab-scientist' as const, label: 'Lab Scientist', icon: FlaskConical, color: 'bg-indigo-100 text-indigo-700', description: 'Laboratory management' },
+  { id: 'lab-technician' as const, label: 'Lab Technician', icon: Microscope, color: 'bg-violet-100 text-violet-700', description: 'Samples & raw data entry' },
   { id: 'pharmacist' as const, label: 'Pharmacist', icon: Pill, color: 'bg-teal-100 text-teal-700', description: 'Pharmacy & inventory' },
   { id: 'billing-officer' as const, label: 'Billing Officer', icon: CreditCard, color: 'bg-orange-100 text-orange-700', description: 'Billing & insurance' },
+  { id: 'insurance-officer' as const, label: 'Insurance Officer', icon: FileCheck2, color: 'bg-cyan-100 text-cyan-700', description: 'Claims processing' },
   { id: 'it-officer' as const, label: 'IT Officer', icon: Monitor, color: 'bg-slate-100 text-slate-700', description: 'System & security' },
 ];
 

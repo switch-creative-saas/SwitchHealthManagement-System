@@ -4,11 +4,13 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
+import { useSubscription } from '@/contexts/SubscriptionContext';
 
 type AITab = 'symptom-engine' | 'imaging-analysis' | 'history-aware';
 
 export function AIClinicalIntelligencePage() {
   const { canView } = useAuth();
+  const { hasAccess } = useSubscription();
   const [activeTab, setActiveTab] = useState<AITab>('symptom-engine');
   const [symptoms, setSymptoms] = useState('');
   const [uploadedScan, setUploadedScan] = useState<File | null>(null);
@@ -25,6 +27,9 @@ export function AIClinicalIntelligencePage() {
 
   if (!canView('EMR')) {
     return <div className="rounded-2xl border border-red-100 bg-red-50 p-6 text-red-700">Access denied by RBAC policy.</div>;
+  }
+  if (!hasAccess('ai_limited')) {
+    return <div className="rounded-2xl border border-amber-100 bg-amber-50 p-6 text-amber-800">AI Clinical Intelligence is locked on Free. Upgrade to Pro.</div>;
   }
 
   return (

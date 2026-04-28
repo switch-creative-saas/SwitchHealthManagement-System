@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { 
   User, 
   Building2, 
@@ -8,10 +8,15 @@ import {
   Wifi,
   ChevronRight,
   CheckCircle2,
+  Sun,
+  Moon,
+  Monitor,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
+import { toast } from 'sonner';
+import { applyTheme, getSavedTheme, type ThemeMode } from '@/lib/theme';
 
 import { RoleSwitcher } from '@/components/role/RoleSwitcher';
 
@@ -19,6 +24,7 @@ const tabs = [
   { id: 'profile', label: 'Profile', icon: User },
   { id: 'facility', label: 'Facility', icon: Building2 },
   { id: 'security', label: 'Security', icon: Shield },
+  { id: 'appearance', label: 'Appearance', icon: Sun },
   { id: 'notifications', label: 'Notifications', icon: Bell },
   { id: 'data', label: 'Data & Sync', icon: Database },
   { id: 'role', label: 'Role Simulation', icon: Shield },
@@ -28,6 +34,11 @@ export function SettingsPage() {
   const [activeTab, setActiveTab] = useState('profile');
   const [offlineMode, setOfflineMode] = useState(true);
   const [autoSync, setAutoSync] = useState(true);
+  const [theme, setTheme] = useState<ThemeMode>(() => getSavedTheme());
+
+  useEffect(() => {
+    applyTheme(theme);
+  }, [theme]);
   
 
   return (
@@ -196,6 +207,51 @@ export function SettingsPage() {
                     className="w-full px-4 py-3 rounded-xl bg-gray-50 border-0 focus:ring-2 focus:ring-royal-500/20"
                   />
                 </div>
+              </div>
+            </div>
+          )}
+
+          {/* Data & Sync */}
+          {activeTab === 'appearance' && (
+            <div className="premium-card p-6">
+              <h2 className="text-lg font-semibold text-gray-900 mb-2">Appearance</h2>
+              <p className="text-sm text-gray-500 mb-6">Choose Light, Dark (deep blue), or follow your system.</p>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                {[
+                  { id: 'light' as const, label: 'Light', icon: Sun, description: 'Bright neutral interface' },
+                  { id: 'dark' as const, label: 'Dark', icon: Moon, description: 'Deep blue clinical dark mode' },
+                  { id: 'system' as const, label: 'System', icon: Monitor, description: 'Match OS preference' },
+                ].map((option) => {
+                  const Icon = option.icon;
+                  const isActive = theme === option.id;
+                  return (
+                    <button
+                      key={option.id}
+                      type="button"
+                      onClick={() => {
+                        setTheme(option.id);
+                        toast.success(`Theme set to ${option.label}`);
+                      }}
+                      className={cn(
+                        'text-left p-4 rounded-2xl border transition-all duration-200 bg-white/70',
+                        isActive
+                          ? 'border-royal-400 ring-2 ring-royal-200 shadow-sm'
+                          : 'border-gray-200 hover:border-gray-300',
+                      )}
+                    >
+                      <div className="flex items-center gap-2">
+                        <Icon className="w-4 h-4 text-royal-600" />
+                        <span className="font-medium text-gray-900">{option.label}</span>
+                      </div>
+                      <p className="text-xs text-gray-500 mt-2">{option.description}</p>
+                    </button>
+                  );
+                })}
+              </div>
+
+              <div className="mt-5 text-xs text-gray-500">
+                Theme setting is saved per user session and applied globally.
               </div>
             </div>
           )}

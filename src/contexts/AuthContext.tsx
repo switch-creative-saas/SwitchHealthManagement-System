@@ -11,8 +11,10 @@ export type UserRole =
   | 'nurse'
   | 'receptionist'
   | 'lab-scientist'
+  | 'lab-technician'
   | 'pharmacist'
   | 'billing-officer'
+  | 'insurance-officer'
   | 'it-officer';
 
 type PermissionAction = 'view' | 'create' | 'edit' | 'delete' | 'export' | 'approve';
@@ -58,8 +60,8 @@ const ROLE_CONFIGS: Record<UserRole, RoleConfig> = {
       { module: 'Appointments', actions: ['view', 'create', 'edit', 'delete', 'export', 'approve'] },
       { module: 'Patients', actions: ['view', 'create', 'edit', 'delete', 'export', 'approve'] },
       { module: 'EMR', actions: ['view'] },
-      { module: 'Laboratory', actions: ['view'] },
-      { module: 'Pharmacy', actions: ['view'] },
+      { module: 'Laboratory', actions: ['view', 'create', 'edit', 'delete', 'export', 'approve'] },
+      { module: 'Pharmacy', actions: ['view', 'create', 'edit', 'export', 'approve'] },
       { module: 'Billing', actions: ['view', 'create', 'edit', 'export'] },
       { module: 'Analytics', actions: ['view', 'export'] },
       { module: 'Human Resources', actions: ['view', 'create', 'edit', 'delete'] },
@@ -98,6 +100,7 @@ const ROLE_CONFIGS: Record<UserRole, RoleConfig> = {
       { module: 'Dashboard', actions: ['view'] },
       { module: 'Appointments', actions: ['view', 'create', 'edit'] },
       { module: 'Patients', actions: ['view', 'create'] },
+      { module: 'Laboratory', actions: ['view', 'create'] },
     ],
   },
   'lab-scientist': {
@@ -106,7 +109,16 @@ const ROLE_CONFIGS: Record<UserRole, RoleConfig> = {
     permissions: [
       { module: 'Dashboard', actions: ['view'] },
       { module: 'Patients', actions: ['view'] },
-      { module: 'Laboratory', actions: ['view', 'create', 'edit', 'export'] },
+      { module: 'Laboratory', actions: ['view', 'create', 'edit', 'delete', 'export'] },
+    ],
+  },
+  'lab-technician': {
+    name: 'Lab Technician',
+    description: 'Sample handling & raw data entry',
+    permissions: [
+      { module: 'Dashboard', actions: ['view'] },
+      { module: 'Patients', actions: ['view'] },
+      { module: 'Laboratory', actions: ['view', 'edit'] },
     ],
   },
   'pharmacist': {
@@ -127,6 +139,16 @@ const ROLE_CONFIGS: Record<UserRole, RoleConfig> = {
       { module: 'Patients', actions: ['view'] },
       { module: 'Billing', actions: ['view', 'create', 'edit', 'export'] },
       { module: 'Analytics', actions: ['view', 'export'] },
+    ],
+  },
+  'insurance-officer': {
+    name: 'Insurance Officer',
+    description: 'Insurance claims & approvals',
+    permissions: [
+      { module: 'Dashboard', actions: ['view'] },
+      { module: 'Patients', actions: ['view'] },
+      { module: 'Billing', actions: ['view', 'edit', 'approve', 'export'] },
+      { module: 'Analytics', actions: ['view'] },
     ],
   },
   'it-officer': {
@@ -179,6 +201,7 @@ export interface AuthContextType {
   isReceptionist: boolean;
   isNurse: boolean;
   isLabScientist: boolean;
+  isLabTechnician: boolean;
   isPharmacist: boolean;
   isBillingOfficer: boolean;
   isHospitalAdmin: boolean;
@@ -225,8 +248,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     'nurse': { name: 'Nurse Amina Bello', email: 'a.bello@switchhealth.ng', avatar: 'AB' },
     'receptionist': { name: 'Receptionist John', email: 'reception@switchhealth.ng', avatar: 'RJ' },
     'lab-scientist': { name: 'Lab Scientist Okonkwo', email: 'o.okonkwo@switchhealth.ng', avatar: 'LO' },
+    'lab-technician': { name: 'Lab Tech Ibrahim Musa', email: 'i.musa@switchhealth.ng', avatar: 'LT' },
     'pharmacist': { name: 'Pharmacist Adeyemi', email: 'p.adeyemi@switchhealth.ng', avatar: 'PA' },
     'billing-officer': { name: 'Billing Officer Ngozi', email: 'n.obi@switchhealth.ng', avatar: 'BN' },
+    'insurance-officer': { name: 'Insurance Officer Chika', email: 'insurance@switchhealth.ng', avatar: 'IO' },
     'it-officer': { name: 'IT Officer Michael', email: 'it@switchhealth.ng', avatar: 'IM' },
   };
 
@@ -256,6 +281,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         isReceptionist: currentRole === 'receptionist',
         isNurse: currentRole === 'nurse',
         isLabScientist: currentRole === 'lab-scientist',
+        isLabTechnician: currentRole === 'lab-technician',
         isPharmacist: currentRole === 'pharmacist',
         isBillingOfficer: currentRole === 'billing-officer',
         isHospitalAdmin: currentRole === 'hospital-admin',
