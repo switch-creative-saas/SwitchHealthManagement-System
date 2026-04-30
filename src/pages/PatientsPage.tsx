@@ -161,7 +161,19 @@ export function PatientsPage({ onOpenPatientEmr }: PatientsPageProps) {
 
   return (
     <div className="space-y-5 page-transition">
-      <PatientOnboardingWizard open={wizardOpen} onOpenChange={setWizardOpen} tenantId={tenantId} creatorName={userName} canCreate={canCreate('Patients')} onCreated={() => { setPage(1); refresh(); }} />
+      <PatientOnboardingWizard
+        open={wizardOpen}
+        onOpenChange={setWizardOpen}
+        tenantId={tenantId}
+        creatorName={userName}
+        canCreate={canCreate('Patients')}
+        onCreated={() => {
+          setPage(1);
+          refresh();
+          window.dispatchEvent(new CustomEvent('switch-health:training-action', { detail: { action: 'patients:created' } }));
+          window.dispatchEvent(new CustomEvent('switch-health:training-action', { detail: { action: 'patients:switch-id-generated' } }));
+        }}
+      />
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Patient Registry</h1>

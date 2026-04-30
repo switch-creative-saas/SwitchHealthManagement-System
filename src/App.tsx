@@ -5,6 +5,8 @@ import { AuthProvider } from '@/contexts/AuthContext';
 import { SubscriptionProvider } from '@/contexts/SubscriptionContext';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { Header } from '@/components/layout/Header';
+import { AppLayout } from '@/components/layout/AppLayout';
+import { PageContainer } from '@/components/layout/PageContainer';
 import { GuliaAIPanel } from '@/components/ai/GuliaAIPanel';
 import { AIFloatingButton } from '@/components/ai/AIFloatingButton';
 import { DashboardPage } from '@/pages/DashboardPage';
@@ -30,6 +32,7 @@ import { Toaster } from '@/components/ui/sonner';
 import type { PageType } from '@/types';
 import { GuidedTourProvider } from '@/contexts/GuidedTourContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { SecurityAuditProvider } from '@/contexts/SecurityAuditContext';
 
 function App() {
   return (
@@ -49,6 +52,25 @@ function AppShell() {
   const [currentPage, setCurrentPage] = useState<PageType>('dashboard');
   const [guliaPanelOpen, setGuliaPanelOpen] = useState(false);
   const [emrSwitchId, setEmrSwitchId] = useState<string | null>(null);
+  const pagePathMap: Record<Exclude<PageType, 'emr'>, string> = {
+    dashboard: '/',
+    'patient-identity': '/patient-identity',
+    patients: '/patients',
+    telemedicine: '/telemedicine',
+    'ai-clinical-intelligence': '/ai-clinical-intelligence',
+    'switch-network': '/switch-network',
+    appointments: '/appointments',
+    laboratory: '/laboratory',
+    pharmacy: '/pharmacy',
+    billing: '/billing',
+    analytics: '/analytics',
+    'human-resources': '/human-resources',
+    administration: '/administration',
+    subscription: '/subscription',
+    'audit-logs': '/audit-logs',
+    settings: '/settings',
+    help: '/help',
+  };
 
   const parseRoute = () => {
     const path = window.location.pathname;
@@ -65,6 +87,12 @@ function AppShell() {
     }
     if (path === '/patients') {
       setCurrentPage('patients');
+      setEmrSwitchId(null);
+      return;
+    }
+    const pageEntry = Object.entries(pagePathMap).find(([, routePath]) => routePath === path);
+    if (pageEntry) {
+      setCurrentPage(pageEntry[0] as PageType);
       setEmrSwitchId(null);
       return;
     }
@@ -101,16 +129,13 @@ function AppShell() {
 
   const navigateToPage = (page: PageType) => {
     setCurrentPage(page);
-    if (page === 'patients') {
-      window.history.pushState({}, '', '/patients');
-      return;
-    }
     if (page === 'emr') {
       const path = emrSwitchId ? `/emr/${encodeURIComponent(emrSwitchId)}` : '/emr';
       window.history.pushState({}, '', path);
       return;
     }
-    window.history.pushState({}, '', '/');
+    const path = pagePathMap[page as Exclude<PageType, 'emr'>] ?? '/';
+    window.history.pushState({}, '', path);
   };
 
   const openEmrForPatient = (switchId: string) => {
@@ -210,7 +235,12 @@ function AppShell() {
     setUserProfile({ name: payload.name, email: payload.email, avatar: payload.name.split(' ').map((part) => part[0]).slice(0, 2).join('') });
     setIsAuthenticated(true);
     setCurrentPage(payload.redirectPage);
-    window.history.pushState({}, '', '/');
+    if (payload.redirectPage === 'emr') {
+      window.history.pushState({}, '', '/emr');
+      return;
+    }
+    const path = pagePathMap[payload.redirectPage as Exclude<PageType, 'emr'>] ?? '/';
+    window.history.pushState({}, '', path);
   };
 
   const handleLogout = () => {
@@ -237,13 +267,14 @@ function AppShell() {
     handleLogout();
   };
 
-  if (!isAuthenticated) {
-    return <AuthGatewayPage onAuthenticated={handleAuthenticated} defaultTheme={document.documentElement.classList.contains('dark-theme') ? 'dark' : 'light'} />;
-  }
-
   return (
-    <GuidedTourProvider currentPage={currentPage} currentRole={currentRole} userName={userName} onNavigate={navigateToPage}>
-      <div className="app-shell flex h-screen overflow-hidden">
+    <SecurityAuditProvider>
+      {!isAuthenticated ? (
+        <AuthGatewayPage onAuthenticated={handleAuthenticated} defaultTheme={document.documentElement.classList.contains('dark-theme') ? 'dark' : 'light'} />
+      ) : (
+        <GuidedTourProvider currentPage={currentPage} currentRole={currentRole} userName={userName} onNavigate={navigateToPage}>
+          <AppLayout>
+            <div className="app-shell flex h-screen overflow-hidden">
         <Sidebar 
           currentPage={currentPage} 
           onPageChange={(page) => navigateToPage(page as PageType)}
@@ -258,10 +289,10 @@ function AppShell() {
             onDeleteAccount={handleDeleteAccount}
           />
           
-          <main className="flex-1 overflow-auto p-4 sm:p-6 page-transition">
-            <div className="max-w-7xl mx-auto">
+          <main className="flex-1 overflow-auto page-transition">
+            <PageContainer className="py-4 sm:py-6">
               {renderPage()}
-            </div>
+            </PageContainer>
           </main>
         </div>
 
@@ -279,8 +310,11 @@ function AppShell() {
         </button>
         <AIFloatingButton onClick={() => setGuliaPanelOpen(!guliaPanelOpen)} />
         <Toaster position="top-right" />
-      </div>
-    </GuidedTourProvider>
+            </div>
+          </AppLayout>
+        </GuidedTourProvider>
+      )}
+    </SecurityAuditProvider>
   );
 }
 

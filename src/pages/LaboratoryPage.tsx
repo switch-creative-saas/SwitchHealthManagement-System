@@ -488,6 +488,7 @@ export function LaboratoryPage() {
         detail: { channel: 'lab', type: 'new-order', orderId: id, message: 'New lab order queued' },
       }),
     );
+    window.dispatchEvent(new CustomEvent('switch-health:training-action', { detail: { action: 'laboratory:order-created' } }));
   };
 
   const exportCsv = () => {
@@ -576,6 +577,9 @@ export function LaboratoryPage() {
         }),
       );
     }
+    window.dispatchEvent(new CustomEvent('switch-health:training-action', { detail: { action: 'laboratory:results-submitted' } }));
+    window.dispatchEvent(new CustomEvent('switch-health:training-action', { detail: { action: 'laboratory:report-uploaded' } }));
+    window.dispatchEvent(new CustomEvent('switch-health:training-action', { detail: { action: 'laboratory:doctor-notified' } }));
     setSheetOrder(null);
   };
 
@@ -590,6 +594,9 @@ export function LaboratoryPage() {
     }
     persistOrderPatch(order.id, { status });
     toast.success(`Status updated → ${status}`);
+    if (status === 'processing') {
+      window.dispatchEvent(new CustomEvent('switch-health:training-action', { detail: { action: 'laboratory:processing' } }));
+    }
   };
 
   const cancelOrder = (order: LabOrder) => {

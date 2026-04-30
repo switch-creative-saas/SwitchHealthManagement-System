@@ -1,297 +1,31 @@
-import { useState } from 'react';
-import { 
-  Shield, 
-  Search, 
-  Filter, 
-  Download, 
-  Calendar, 
-  Clock, 
-  Monitor, 
-  Smartphone, 
-  Tablet,
-  Globe,
-  AlertTriangle,
-  CheckCircle,
-  XCircle,
-  Lock,
-  Key,
-  Eye,
-  RefreshCw,
-  LogOut,
-  FileText,
-  History,
-  Fingerprint,
-  Mail,
-  SmartphoneIcon
-} from 'lucide-react';
+import { useMemo, useState } from 'react';
+import { AlertTriangle, Calendar, CheckCircle, Clock, Download, Eye, Globe, History, LogOut, Monitor, RefreshCw, Search, Shield, UserX, XCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
-} from '@/components/ui/table';
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogDescription, 
-  DialogHeader, 
-  DialogTitle,
-  DialogFooter
-} from '@/components/ui/dialog';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-
-// Mock audit log data
-const mockAuditLogs = [
-  {
-    id: '1',
-    timestamp: '2026-02-23T14:32:15Z',
-    user: { name: 'Dr. Sarah Johnson', email: 's.johnson@switchhealth.ng', role: 'Doctor' },
-    action: 'VIEW',
-    resource: 'Patient Record',
-    resourceId: 'PT-2026-001',
-    module: 'EMR',
-    ipAddress: '192.168.1.45',
-    device: 'Desktop - Chrome',
-    location: 'Lagos, Nigeria',
-    status: 'success',
-    riskLevel: 'low'
-  },
-  {
-    id: '2',
-    timestamp: '2026-02-23T14:28:42Z',
-    user: { name: 'Nurse Amina Bello', email: 'a.bello@switchhealth.ng', role: 'Nurse' },
-    action: 'UPDATE',
-    resource: 'Vital Signs',
-    resourceId: 'VS-2026-089',
-    module: 'EMR',
-    ipAddress: '192.168.1.52',
-    device: 'Tablet - Safari',
-    location: 'Lagos, Nigeria',
-    status: 'success',
-    riskLevel: 'low'
-  },
-  {
-    id: '3',
-    timestamp: '2026-02-23T14:15:20Z',
-    user: { name: 'Admin User', email: 'admin@switchhealth.ng', role: 'Hospital Admin' },
-    action: 'CREATE',
-    resource: 'User Account',
-    resourceId: 'USR-2026-045',
-    module: 'Administration',
-    ipAddress: '102.89.47.123',
-    device: 'Desktop - Firefox',
-    location: 'Abuja, Nigeria',
-    status: 'success',
-    riskLevel: 'medium'
-  },
-  {
-    id: '4',
-    timestamp: '2026-02-23T13:58:11Z',
-    user: { name: 'Unknown', email: 'unknown', role: 'N/A' },
-    action: 'LOGIN',
-    resource: 'System',
-    resourceId: 'N/A',
-    module: 'Authentication',
-    ipAddress: '45.123.67.89',
-    device: 'Mobile - Chrome',
-    location: 'Kano, Nigeria',
-    status: 'failed',
-    riskLevel: 'high'
-  },
-  {
-    id: '5',
-    timestamp: '2026-02-23T13:45:33Z',
-    user: { name: 'Dr. Michael Chen', email: 'm.chen@switchhealth.ng', role: 'Doctor' },
-    action: 'EXPORT',
-    resource: 'Patient Records',
-    resourceId: 'BATCH-2026-012',
-    module: 'EMR',
-    ipAddress: '192.168.1.38',
-    device: 'Desktop - Chrome',
-    location: 'Lagos, Nigeria',
-    status: 'success',
-    riskLevel: 'medium'
-  },
-  {
-    id: '6',
-    timestamp: '2026-02-23T13:30:00Z',
-    user: { name: 'Lab Scientist Okonkwo', email: 'o.okonkwo@switchhealth.ng', role: 'Lab Scientist' },
-    action: 'DELETE',
-    resource: 'Test Result',
-    resourceId: 'LAB-2026-234',
-    module: 'Laboratory',
-    ipAddress: '192.168.1.61',
-    device: 'Desktop - Edge',
-    location: 'Lagos, Nigeria',
-    status: 'success',
-    riskLevel: 'high'
-  },
-  {
-    id: '7',
-    timestamp: '2026-02-23T12:15:45Z',
-    user: { name: 'Pharmacist Adeyemi', email: 'p.adeyemi@switchhealth.ng', role: 'Pharmacist' },
-    action: 'APPROVE',
-    resource: 'Prescription',
-    resourceId: 'RX-2026-567',
-    module: 'Pharmacy',
-    ipAddress: '192.168.1.55',
-    device: 'Desktop - Chrome',
-    location: 'Lagos, Nigeria',
-    status: 'success',
-    riskLevel: 'low'
-  },
-  {
-    id: '8',
-    timestamp: '2026-02-23T11:58:22Z',
-    user: { name: 'Billing Officer Ngozi', email: 'n.obi@switchhealth.ng', role: 'Billing Officer' },
-    action: 'VIEW',
-    resource: 'Invoice',
-    resourceId: 'INV-2026-789',
-    module: 'Billing',
-    ipAddress: '192.168.1.48',
-    device: 'Desktop - Chrome',
-    location: 'Lagos, Nigeria',
-    status: 'success',
-    riskLevel: 'low'
-  }
-];
-
-// Mock active sessions
-const mockActiveSessions = [
-  {
-    id: 'sess-001',
-    user: { name: 'Dr. Sarah Johnson', email: 's.johnson@switchhealth.ng', avatar: 'SJ' },
-    deviceType: 'desktop',
-    deviceName: 'Windows PC - Chrome',
-    browser: 'Chrome 122.0',
-    os: 'Windows 11',
-    ipAddress: '192.168.1.45',
-    location: 'Lagos, Nigeria',
-    startedAt: '2026-02-23T08:30:00Z',
-    lastActive: '2026-02-23T14:32:15Z',
-    isCurrentSession: true
-  },
-  {
-    id: 'sess-002',
-    user: { name: 'Nurse Amina Bello', email: 'a.bello@switchhealth.ng', avatar: 'AB' },
-    deviceType: 'tablet',
-    deviceName: 'iPad - Safari',
-    browser: 'Safari 17.1',
-    os: 'iOS 17.3',
-    ipAddress: '192.168.1.52',
-    location: 'Lagos, Nigeria',
-    startedAt: '2026-02-23T09:15:00Z',
-    lastActive: '2026-02-23T14:28:42Z',
-    isCurrentSession: false
-  },
-  {
-    id: 'sess-003',
-    user: { name: 'Admin User', email: 'admin@switchhealth.ng', avatar: 'AU' },
-    deviceType: 'mobile',
-    deviceName: 'iPhone 15 Pro',
-    browser: 'Chrome 122.0',
-    os: 'iOS 17.3',
-    ipAddress: '102.89.47.123',
-    location: 'Abuja, Nigeria',
-    startedAt: '2026-02-23T10:00:00Z',
-    lastActive: '2026-02-23T13:45:00Z',
-    isCurrentSession: false
-  },
-  {
-    id: 'sess-004',
-    user: { name: 'Dr. Michael Chen', email: 'm.chen@switchhealth.ng', avatar: 'MC' },
-    deviceType: 'desktop',
-    deviceName: 'MacBook Pro - Chrome',
-    browser: 'Chrome 122.0',
-    os: 'macOS 14.3',
-    ipAddress: '192.168.1.38',
-    location: 'Lagos, Nigeria',
-    startedAt: '2026-02-23T07:45:00Z',
-    lastActive: '2026-02-23T14:15:00Z',
-    isCurrentSession: false
-  }
-];
-
-// Security settings
-const securitySettings = {
-  passwordPolicy: {
-    minLength: 12,
-    requireUppercase: true,
-    requireLowercase: true,
-    requireNumbers: true,
-    requireSpecialChars: true,
-    expiryDays: 90,
-    preventReuse: 5
-  },
-  sessionPolicy: {
-    timeoutMinutes: 30,
-    maxConcurrentSessions: 3,
-    enforceDeviceBinding: false,
-    requireReauthForSensitive: true
-  },
-  mfaPolicy: {
-    enabled: true,
-    requiredForRoles: ['Super Admin', 'Hospital Admin', 'IT Officer'],
-    methods: ['authenticator', 'sms', 'email']
-  },
-  auditPolicy: {
-    retentionDays: 365,
-    logFailedLogins: true,
-    logDataExports: true,
-    realTimeAlerts: true
-  }
-};
-
-const getActionIcon = (action: string) => {
-  switch (action) {
-    case 'VIEW': return <Eye className="w-4 h-4" />;
-    case 'CREATE': return <CheckCircle className="w-4 h-4" />;
-    case 'UPDATE': return <RefreshCw className="w-4 h-4" />;
-    case 'DELETE': return <XCircle className="w-4 h-4" />;
-    case 'EXPORT': return <Download className="w-4 h-4" />;
-    case 'APPROVE': return <CheckCircle className="w-4 h-4" />;
-    case 'LOGIN': return <Lock className="w-4 h-4" />;
-    default: return <FileText className="w-4 h-4" />;
-  }
-};
+import { useAuth } from '@/contexts/AuthContext';
+import { useSubscription } from '@/contexts/SubscriptionContext';
+import { useSecurityAudit, type AuditLogEntry } from '@/contexts/SecurityAuditContext';
+import { toast } from 'sonner';
 
 const getActionColor = (action: string) => {
-  switch (action) {
-    case 'VIEW': return 'bg-blue-500/10 text-blue-600 border-blue-200';
-    case 'CREATE': return 'bg-green-500/10 text-green-600 border-green-200';
-    case 'UPDATE': return 'bg-amber-500/10 text-amber-600 border-amber-200';
-    case 'DELETE': return 'bg-red-500/10 text-red-600 border-red-200';
-    case 'EXPORT': return 'bg-purple-500/10 text-purple-600 border-purple-200';
-    case 'APPROVE': return 'bg-emerald-500/10 text-emerald-600 border-emerald-200';
-    case 'LOGIN': return 'bg-slate-500/10 text-slate-600 border-slate-200';
-    default: return 'bg-gray-500/10 text-gray-600 border-gray-200';
-  }
+  if (action === 'DELETE' || action === 'UNAUTHORIZED') return 'bg-red-500/10 text-red-600 border-red-200';
+  if (action === 'CREATE') return 'bg-green-500/10 text-green-600 border-green-200';
+  if (action === 'UPDATE') return 'bg-amber-500/10 text-amber-600 border-amber-200';
+  if (action === 'EXPORT') return 'bg-purple-500/10 text-purple-600 border-purple-200';
+  if (action === 'LOGIN' || action === 'LOGOUT') return 'bg-slate-500/10 text-slate-600 border-slate-200';
+  return 'bg-blue-500/10 text-blue-600 border-blue-200';
 };
 
-const getRiskBadge = (level: string) => {
-  switch (level) {
-    case 'low': return <Badge variant="outline" className="bg-emerald-500/10 text-emerald-600 border-emerald-200">Low</Badge>;
-    case 'medium': return <Badge variant="outline" className="bg-amber-500/10 text-amber-600 border-amber-200">Medium</Badge>;
-    case 'high': return <Badge variant="outline" className="bg-red-500/10 text-red-600 border-red-200">High</Badge>;
-    default: return <Badge variant="outline">Unknown</Badge>;
-  }
-};
-
-const getDeviceIcon = (deviceType: string) => {
-  switch (deviceType) {
-    case 'desktop': return <Monitor className="w-5 h-5" />;
-    case 'mobile': return <Smartphone className="w-5 h-5" />;
-    case 'tablet': return <Tablet className="w-5 h-5" />;
-    default: return <Monitor className="w-5 h-5" />;
-  }
+const getDeviceIcon = (device: string) => {
+  if (/mobile/i.test(device)) return <Eye className="w-5 h-5" />;
+  if (/tablet/i.test(device)) return <Eye className="w-5 h-5" />;
+  return <Monitor className="w-5 h-5" />;
 };
 
 const formatDateTime = (isoString: string) => {
@@ -302,37 +36,75 @@ const formatDateTime = (isoString: string) => {
   };
 };
 
-const formatDuration = (minutes: number) => {
-  if (minutes < 60) return `${minutes} min`;
-  const hours = Math.floor(minutes / 60);
-  const mins = minutes % 60;
-  return mins > 0 ? `${hours}h ${mins}m` : `${hours}h`;
-};
-
 export function AuditLogsPage() {
-  const [searchQuery, setSearchQuery] = useState('');
+  const { currentRole, userEmail } = useAuth();
+  const { subscription } = useSubscription();
+  const { logs, sessions, policies, flagLog, exportLogs, terminateSession, terminateAllSessions, updatePolicy } = useSecurityAudit();
   const [selectedTab, setSelectedTab] = useState('logs');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filterUser, setFilterUser] = useState('all');
+  const [filterRole, setFilterRole] = useState('all');
+  const [filterModule, setFilterModule] = useState('all');
+  const [filterAction, setFilterAction] = useState('all');
+  const [filterRisk, setFilterRisk] = useState('all');
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
+  const [selectedLog, setSelectedLog] = useState<AuditLogEntry | null>(null);
   const [showTerminateDialog, setShowTerminateDialog] = useState(false);
-  const [selectedSession, setSelectedSession] = useState<typeof mockActiveSessions[0] | null>(null);
-  const [settings] = useState(securitySettings);
+  const [selectedSessionId, setSelectedSessionId] = useState<string | null>(null);
+  const canAdmin = currentRole === 'super-admin' || currentRole === 'hospital-admin' || currentRole === 'it-officer';
+  const canSupport = currentRole === 'support-agent';
+  const canConfigurePolicies = canAdmin;
+  const proAccess = subscription.plan !== 'free';
+  const enterpriseAccess = subscription.plan === 'enterprise';
 
-  const filteredLogs = mockAuditLogs.filter(log => 
-    log.user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    log.user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    log.action.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    log.resource.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    log.module.toLowerCase().includes(searchQuery.toLowerCase())
+  const baseVisibleLogs = useMemo(() => {
+    if (canAdmin) return logs;
+    if (canSupport) return logs.filter((entry) => entry.riskLevel !== 'high');
+    return logs.filter((entry) => entry.userEmail === userEmail);
+  }, [logs, canAdmin, canSupport, userEmail]);
+
+  const filteredLogs = useMemo(
+    () =>
+      baseVisibleLogs.filter((entry) => {
+        const text = `${entry.userName} ${entry.userEmail} ${entry.action} ${entry.resource} ${entry.module} ${entry.details ?? ''}`.toLowerCase();
+        const searchMatch = !searchQuery || text.includes(searchQuery.toLowerCase());
+        const userMatch = filterUser === 'all' || entry.userEmail === filterUser;
+        const roleMatch = filterRole === 'all' || entry.role === filterRole;
+        const moduleMatch = filterModule === 'all' || entry.module === filterModule;
+        const actionMatch = filterAction === 'all' || entry.action === filterAction;
+        const riskMatch = filterRisk === 'all' || entry.riskLevel === filterRisk;
+        const day = entry.timestamp.slice(0, 10);
+        const fromMatch = !dateFrom || day >= dateFrom;
+        const toMatch = !dateTo || day <= dateTo;
+        return searchMatch && userMatch && roleMatch && moduleMatch && actionMatch && riskMatch && fromMatch && toMatch;
+      }),
+    [baseVisibleLogs, searchQuery, filterUser, filterRole, filterModule, filterAction, filterRisk, dateFrom, dateTo],
   );
 
-  const handleTerminateSession = (session: typeof mockActiveSessions[0]) => {
-    setSelectedSession(session);
+  const users = Array.from(new Set(baseVisibleLogs.map((entry) => entry.userEmail)));
+  const roles = Array.from(new Set(baseVisibleLogs.map((entry) => entry.role)));
+  const modules = Array.from(new Set(baseVisibleLogs.map((entry) => entry.module)));
+  const actions = Array.from(new Set(baseVisibleLogs.map((entry) => entry.action)));
+
+  const stats = useMemo(() => {
+    const successful = filteredLogs.filter((entry) => entry.status === 'success').length;
+    const failed = filteredLogs.filter((entry) => entry.status === 'failed').length;
+    const highRisk = filteredLogs.filter((entry) => entry.riskLevel === 'high').length;
+    const active = sessions.length;
+    return { successful, failed, highRisk, active };
+  }, [filteredLogs, sessions.length]);
+
+  const handleTerminateSession = (sessionId: string) => {
+    setSelectedSessionId(sessionId);
     setShowTerminateDialog(true);
   };
 
   const confirmTerminate = () => {
-    // In real implementation, this would call the API
+    if (selectedSessionId) terminateSession(selectedSessionId);
     setShowTerminateDialog(false);
-    setSelectedSession(null);
+    setSelectedSessionId(null);
+    toast.success('Session terminated');
   };
 
   return (
@@ -341,13 +113,14 @@ export function AuditLogsPage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold text-[#1E1B8F]">Security & Audit</h1>
-          <p className="text-sm text-gray-500 mt-1">Monitor system activity, manage sessions, and configure security policies</p>
+          <p className="text-sm text-gray-500 mt-1">Compliance-ready audit trails, session control, and role-aware security policies.</p>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" className="gap-2">
+          <Button variant="outline" className="gap-2" disabled={!proAccess} onClick={() => exportLogs(filteredLogs, 'csv')}>
             <Download className="w-4 h-4" />
-            Export Logs
+            Export CSV
           </Button>
+          <Button variant="outline" className="gap-2" disabled={!proAccess} onClick={() => exportLogs(filteredLogs, 'pdf')}>PDF</Button>
         </div>
       </div>
 
@@ -372,50 +145,50 @@ export function AuditLogsPage() {
         <TabsContent value="logs" className="space-y-6">
           {/* Stats Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="bg-white/70 backdrop-blur-xl border border-white/60 shadow-sm p-4 rounded-xl hover:bg-white/80 transition-all duration-300">
+            <button className="bg-white/70 text-left backdrop-blur-xl border border-white/60 shadow-sm p-4 rounded-xl hover:bg-white/80 transition-all duration-300" onClick={() => setFilterAction('all')}>
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-lg bg-emerald-500/10 flex items-center justify-center">
                   <CheckCircle className="w-5 h-5 text-emerald-600" />
                 </div>
                 <div>
-                  <p className="text-2xl font-semibold text-[#1E1B8F]">1,247</p>
+                  <p className="text-2xl font-semibold text-[#1E1B8F]">{stats.successful}</p>
                   <p className="text-xs text-gray-500">Successful Actions</p>
                 </div>
               </div>
-            </div>
-            <div className="bg-white/70 backdrop-blur-xl border border-white/60 shadow-sm p-4 rounded-xl hover:bg-white/80 transition-all duration-300">
+            </button>
+            <button className="bg-white/70 text-left backdrop-blur-xl border border-white/60 shadow-sm p-4 rounded-xl hover:bg-white/80 transition-all duration-300" onClick={() => setFilterRisk('high')}>
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-lg bg-red-500/10 flex items-center justify-center">
                   <XCircle className="w-5 h-5 text-red-600" />
                 </div>
                 <div>
-                  <p className="text-2xl font-semibold text-[#1E1B8F]">23</p>
+                  <p className="text-2xl font-semibold text-[#1E1B8F]">{stats.failed}</p>
                   <p className="text-xs text-gray-500">Failed Attempts</p>
                 </div>
               </div>
-            </div>
-            <div className="bg-white/70 backdrop-blur-xl border border-white/60 shadow-sm p-4 rounded-xl hover:bg-white/80 transition-all duration-300">
+            </button>
+            <button className="bg-white/70 text-left backdrop-blur-xl border border-white/60 shadow-sm p-4 rounded-xl hover:bg-white/80 transition-all duration-300" onClick={() => setFilterRisk('high')}>
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-lg bg-amber-500/10 flex items-center justify-center">
                   <AlertTriangle className="w-5 h-5 text-amber-600" />
                 </div>
                 <div>
-                  <p className="text-2xl font-semibold text-[#1E1B8F]">8</p>
+                  <p className="text-2xl font-semibold text-[#1E1B8F]">{stats.highRisk}</p>
                   <p className="text-xs text-gray-500">High Risk Events</p>
                 </div>
               </div>
-            </div>
-            <div className="bg-white/70 backdrop-blur-xl border border-white/60 shadow-sm p-4 rounded-xl hover:bg-white/80 transition-all duration-300">
+            </button>
+            <button className="bg-white/70 text-left backdrop-blur-xl border border-white/60 shadow-sm p-4 rounded-xl hover:bg-white/80 transition-all duration-300" onClick={() => setSelectedTab('sessions')}>
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-lg bg-blue-500/10 flex items-center justify-center">
                   <Eye className="w-5 h-5 text-blue-600" />
                 </div>
                 <div>
-                  <p className="text-2xl font-semibold text-[#1E1B8F]">4</p>
+                  <p className="text-2xl font-semibold text-[#1E1B8F]">{stats.active}</p>
                   <p className="text-xs text-gray-500">Active Sessions</p>
                 </div>
               </div>
-            </div>
+            </button>
           </div>
 
           {/* Filters */}
@@ -429,16 +202,35 @@ export function AuditLogsPage() {
                 className="pl-10 bg-white/50 backdrop-blur-sm border-white/60"
               />
             </div>
-            <div className="flex gap-2">
-              <Button variant="outline" className="gap-2">
-                <Calendar className="w-4 h-4" />
-                Date Range
-              </Button>
-              <Button variant="outline" className="gap-2">
-                <Filter className="w-4 h-4" />
-                Filters
-              </Button>
+            <div className="flex gap-2 items-center">
+              <Calendar className="w-4 h-4 text-gray-400" />
+              <Input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className="w-40" />
+              <Input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className="w-40" />
             </div>
+          </div>
+          <div className="grid grid-cols-2 lg:grid-cols-5 gap-2">
+            <select className="h-10 rounded-md border border-input px-3 text-sm bg-white" value={filterUser} onChange={(e) => setFilterUser(e.target.value)} disabled={!proAccess}>
+              <option value="all">All users</option>
+              {users.map((entry) => <option key={entry} value={entry}>{entry}</option>)}
+            </select>
+            <select className="h-10 rounded-md border border-input px-3 text-sm bg-white" value={filterRole} onChange={(e) => setFilterRole(e.target.value)} disabled={!proAccess}>
+              <option value="all">All roles</option>
+              {roles.map((entry) => <option key={entry} value={entry}>{entry}</option>)}
+            </select>
+            <select className="h-10 rounded-md border border-input px-3 text-sm bg-white" value={filterModule} onChange={(e) => setFilterModule(e.target.value)} disabled={!proAccess}>
+              <option value="all">All modules</option>
+              {modules.map((entry) => <option key={entry} value={entry}>{entry}</option>)}
+            </select>
+            <select className="h-10 rounded-md border border-input px-3 text-sm bg-white" value={filterAction} onChange={(e) => setFilterAction(e.target.value)} disabled={!proAccess}>
+              <option value="all">All actions</option>
+              {actions.map((entry) => <option key={entry} value={entry}>{entry}</option>)}
+            </select>
+            <select className="h-10 rounded-md border border-input px-3 text-sm bg-white" value={filterRisk} onChange={(e) => setFilterRisk(e.target.value)} disabled={!proAccess}>
+              <option value="all">All risks</option>
+              <option value="low">Low</option>
+              <option value="medium">Medium</option>
+              <option value="high">High</option>
+            </select>
           </div>
 
           {/* Audit Logs Table */}
@@ -461,7 +253,7 @@ export function AuditLogsPage() {
                   {filteredLogs.map((log) => {
                     const { date, time } = formatDateTime(log.timestamp);
                     return (
-                      <TableRow key={log.id} className="hover:bg-white/40 border-white/20">
+                      <TableRow key={log.id} className="hover:bg-white/40 border-white/20 cursor-pointer" onClick={() => setSelectedLog(log)}>
                         <TableCell>
                           <div className="flex flex-col">
                             <span className="text-sm font-medium text-gray-900">{date}</span>
@@ -471,17 +263,16 @@ export function AuditLogsPage() {
                         <TableCell>
                           <div className="flex items-center gap-2">
                             <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#1E1B8F] to-[#D4AF37] flex items-center justify-center text-white text-xs font-medium">
-                              {log.user.name.split(' ').map(n => n[0]).join('').slice(0, 2)}
+                              {log.userName.split(' ').map((n) => n[0]).join('').slice(0, 2)}
                             </div>
                             <div className="flex flex-col">
-                              <span className="text-sm font-medium text-gray-900">{log.user.name}</span>
-                              <span className="text-xs text-gray-500">{log.user.role}</span>
+                              <span className="text-sm font-medium text-gray-900">{log.userName}</span>
+                              <span className="text-xs text-gray-500">{log.role}</span>
                             </div>
                           </div>
                         </TableCell>
                         <TableCell>
                           <Badge variant="outline" className={`gap-1 ${getActionColor(log.action)}`}>
-                            {getActionIcon(log.action)}
                             {log.action}
                           </Badge>
                         </TableCell>
@@ -498,7 +289,7 @@ export function AuditLogsPage() {
                           <div className="flex items-center gap-2">
                             {getDeviceIcon(log.device.split(' - ')[0].toLowerCase())}
                             <div className="flex flex-col">
-                              <span className="text-sm text-gray-900">{log.device}</span>
+                              <span className="text-sm text-gray-900">{log.device} - {log.browser}</span>
                               <span className="text-xs text-gray-500 flex items-center gap-1">
                                 <Globe className="w-3 h-3" />
                                 {log.location}
@@ -506,7 +297,7 @@ export function AuditLogsPage() {
                             </div>
                           </div>
                         </TableCell>
-                        <TableCell>{getRiskBadge(log.riskLevel)}</TableCell>
+                        <TableCell><Badge variant="outline" className={log.riskLevel === 'high' ? 'bg-red-500/10 text-red-600 border-red-200' : log.riskLevel === 'medium' ? 'bg-amber-500/10 text-amber-600 border-amber-200' : 'bg-emerald-500/10 text-emerald-600 border-emerald-200'}>{log.riskLevel}</Badge></TableCell>
                         <TableCell>
                           <Badge 
                             variant="outline" 
@@ -529,29 +320,35 @@ export function AuditLogsPage() {
 
         {/* Active Sessions Tab */}
         <TabsContent value="sessions" className="space-y-6">
+          <div className="flex justify-end">
+            <Button variant="outline" className="text-red-600 border-red-200 hover:bg-red-50" onClick={terminateAllSessions} disabled={!canAdmin}>
+              <UserX className="w-4 h-4 mr-2" />
+              Terminate all remote sessions
+            </Button>
+          </div>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            {mockActiveSessions.map((session) => {
-              const started = formatDateTime(session.startedAt);
-              const lastActive = formatDateTime(session.lastActive);
+            {sessions.map((session) => {
+              const started = formatDateTime(session.loginTime);
+              const lastActive = formatDateTime(session.lastActivity);
               return (
                 <div key={session.id} className="bg-white/70 backdrop-blur-xl border border-white/60 shadow-sm p-4 rounded-xl hover:bg-white/80 transition-all duration-300">
                   <div className="flex items-start justify-between">
                     <div className="flex items-start gap-3">
                       <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#1E1B8F] to-[#D4AF37] flex items-center justify-center text-white font-medium">
-                        {session.user.avatar}
+                        {session.userName.split(' ').map((n) => n[0]).join('').slice(0, 2)}
                       </div>
                       <div>
                         <div className="flex items-center gap-2">
-                          <h3 className="font-medium text-[#1E1B8F]">{session.user.name}</h3>
-                          {session.isCurrentSession && (
+                          <h3 className="font-medium text-[#1E1B8F]">{session.userName}</h3>
+                          {session.isCurrent && (
                             <Badge className="bg-[#1E1B8F] text-white text-xs">Current</Badge>
                           )}
+                          {session.suspicious && <Badge variant="outline" className="bg-red-500/10 text-red-600 border-red-200">Suspicious</Badge>}
                         </div>
-                        <p className="text-sm text-gray-500">{session.user.email}</p>
+                        <p className="text-sm text-gray-500">{session.userEmail}</p>
                         <div className="flex items-center gap-4 mt-2 text-xs text-gray-500">
                           <span className="flex items-center gap-1">
-                            {getDeviceIcon(session.deviceType)}
-                            {session.deviceName}
+                            {session.device}
                           </span>
                           <span className="flex items-center gap-1">
                             <Globe className="w-3 h-3" />
@@ -570,12 +367,13 @@ export function AuditLogsPage() {
                         </div>
                       </div>
                     </div>
-                    {!session.isCurrentSession && (
+                    {!session.isCurrent && (
                       <Button
                         variant="outline"
                         size="sm"
                         className="text-red-600 border-red-200 hover:bg-red-50"
-                        onClick={() => handleTerminateSession(session)}
+                        onClick={() => handleTerminateSession(session.id)}
+                        disabled={!canAdmin}
                       >
                         <LogOut className="w-4 h-4 mr-1" />
                         Terminate
@@ -590,161 +388,25 @@ export function AuditLogsPage() {
 
         {/* Security Settings Tab */}
         <TabsContent value="settings" className="space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Password Policy */}
-            <Card className="bg-white/50 backdrop-blur-sm border-white/60">
-              <CardHeader>
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-lg bg-[#1E1B8F]/10 flex items-center justify-center">
-                    <Key className="w-4 h-4 text-[#1E1B8F]" />
-                  </div>
-                  <div>
-                    <CardTitle className="text-lg text-[#1E1B8F]">Password Policy</CardTitle>
-                    <CardDescription>Configure password requirements</CardDescription>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="minLength" className="text-sm">Minimum Length ({settings.passwordPolicy.minLength} chars)</Label>
-                  <Switch id="minLength" defaultChecked />
-                </div>
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="uppercase" className="text-sm">Require Uppercase</Label>
-                  <Switch id="uppercase" defaultChecked={settings.passwordPolicy.requireUppercase} />
-                </div>
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="numbers" className="text-sm">Require Numbers</Label>
-                  <Switch id="numbers" defaultChecked={settings.passwordPolicy.requireNumbers} />
-                </div>
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="special" className="text-sm">Require Special Characters</Label>
-                  <Switch id="special" defaultChecked={settings.passwordPolicy.requireSpecialChars} />
-                </div>
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="expiry" className="text-sm">Password Expiry ({settings.passwordPolicy.expiryDays} days)</Label>
-                  <Switch id="expiry" defaultChecked />
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Session Policy */}
-            <Card className="bg-white/50 backdrop-blur-sm border-white/60">
-              <CardHeader>
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-lg bg-[#D4AF37]/10 flex items-center justify-center">
-                    <Clock className="w-4 h-4 text-[#D4AF37]" />
-                  </div>
-                  <div>
-                    <CardTitle className="text-lg text-[#1E1B8F]">Session Policy</CardTitle>
-                    <CardDescription>Manage session timeouts and limits</CardDescription>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="timeout" className="text-sm">Auto Timeout ({formatDuration(settings.sessionPolicy.timeoutMinutes)})</Label>
-                  <Switch id="timeout" defaultChecked />
-                </div>
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="maxSessions" className="text-sm">Max Concurrent Sessions ({settings.sessionPolicy.maxConcurrentSessions})</Label>
-                  <Switch id="maxSessions" defaultChecked />
-                </div>
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="deviceBinding" className="text-sm">Device Binding</Label>
-                  <Switch id="deviceBinding" defaultChecked={settings.sessionPolicy.enforceDeviceBinding} />
-                </div>
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="reauth" className="text-sm">Re-auth for Sensitive Actions</Label>
-                  <Switch id="reauth" defaultChecked={settings.sessionPolicy.requireReauthForSensitive} />
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* MFA Policy */}
-            <Card className="bg-white/50 backdrop-blur-sm border-white/60">
-              <CardHeader>
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center">
-                    <Fingerprint className="w-4 h-4 text-emerald-600" />
-                  </div>
-                  <div>
-                    <CardTitle className="text-lg text-[#1E1B8F]">Multi-Factor Authentication</CardTitle>
-                    <CardDescription>Configure 2FA requirements</CardDescription>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="mfaEnabled" className="text-sm">Enable MFA</Label>
-                  <Switch id="mfaEnabled" defaultChecked={settings.mfaPolicy.enabled} />
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-sm">Required for Roles:</Label>
-                  <div className="flex flex-wrap gap-2">
-                    {settings.mfaPolicy.requiredForRoles.map((role) => (
-                      <Badge key={role} variant="outline" className="bg-[#1E1B8F]/10 text-[#1E1B8F] border-[#1E1B8F]/20">
-                        {role}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-sm">Allowed Methods:</Label>
-                  <div className="flex gap-2">
-                    <Badge variant="outline" className="gap-1">
-                      <SmartphoneIcon className="w-3 h-3" />
-                      Authenticator
-                    </Badge>
-                    <Badge variant="outline" className="gap-1">
-                      <Mail className="w-3 h-3" />
-                      SMS
-                    </Badge>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Audit Policy */}
-            <Card className="bg-white/50 backdrop-blur-sm border-white/60">
-              <CardHeader>
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-lg bg-purple-500/10 flex items-center justify-center">
-                    <History className="w-4 h-4 text-purple-600" />
-                  </div>
-                  <div>
-                    <CardTitle className="text-lg text-[#1E1B8F]">Audit & Logging</CardTitle>
-                    <CardDescription>Configure audit trail settings</CardDescription>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="retention" className="text-sm">Log Retention ({settings.auditPolicy.retentionDays} days)</Label>
-                  <Switch id="retention" defaultChecked />
-                </div>
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="logFailed" className="text-sm">Log Failed Login Attempts</Label>
-                  <Switch id="logFailed" defaultChecked={settings.auditPolicy.logFailedLogins} />
-                </div>
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="logExports" className="text-sm">Log Data Exports</Label>
-                  <Switch id="logExports" defaultChecked={settings.auditPolicy.logDataExports} />
-                </div>
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="realtimeAlerts" className="text-sm">Real-time Security Alerts</Label>
-                  <Switch id="realtimeAlerts" defaultChecked={settings.auditPolicy.realTimeAlerts} />
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Save Button */}
-          <div className="flex justify-end">
-            <Button className="gap-2 bg-[#1E1B8F] hover:bg-[#1E1B8F]/90">
-              <CheckCircle className="w-4 h-4" />
-              Save Security Settings
-            </Button>
+          <div className="grid md:grid-cols-2 gap-4">
+            <div className="bg-white/70 border border-white/60 rounded-xl p-4 space-y-3">
+              <p className="font-medium text-[#1E1B8F]">Authentication Policies</p>
+              <div className="flex items-center justify-between"><Label>Password min length ({policies.passwordMinLength})</Label><Input className="w-20" type="number" value={policies.passwordMinLength} onChange={(e) => updatePolicy('passwordMinLength', Number(e.target.value))} disabled={!canConfigurePolicies} /></div>
+              <div className="flex items-center justify-between"><Label>Uppercase</Label><Switch checked={policies.requireUppercase} onCheckedChange={(v) => updatePolicy('requireUppercase', v)} disabled={!canConfigurePolicies} /></div>
+              <div className="flex items-center justify-between"><Label>Numbers</Label><Switch checked={policies.requireNumbers} onCheckedChange={(v) => updatePolicy('requireNumbers', v)} disabled={!canConfigurePolicies} /></div>
+              <div className="flex items-center justify-between"><Label>Password expiry ({policies.passwordExpiryDays} days)</Label><Input className="w-20" type="number" value={policies.passwordExpiryDays} onChange={(e) => updatePolicy('passwordExpiryDays', Number(e.target.value))} disabled={!canConfigurePolicies} /></div>
+              <div className="flex items-center justify-between"><Label>Login attempt limit ({policies.loginAttemptLimit})</Label><Input className="w-20" type="number" value={policies.loginAttemptLimit} onChange={(e) => updatePolicy('loginAttemptLimit', Number(e.target.value))} disabled={!canConfigurePolicies} /></div>
+              <div className="flex items-center justify-between"><Label>CAPTCHA after failures</Label><Switch checked={policies.captchaAfterFailedAttempts} onCheckedChange={(v) => updatePolicy('captchaAfterFailedAttempts', v)} disabled={!canConfigurePolicies} /></div>
+            </div>
+            <div className="bg-white/70 border border-white/60 rounded-xl p-4 space-y-3">
+              <p className="font-medium text-[#1E1B8F]">2FA and Session Control</p>
+              <div className="flex items-center justify-between"><Label>Enable 2FA</Label><Switch checked={policies.twoFactorEnabled} onCheckedChange={(v) => updatePolicy('twoFactorEnabled', v)} disabled={!canConfigurePolicies} /></div>
+              <div className="flex items-center justify-between"><Label>Session timeout ({policies.sessionTimeoutMinutes} min)</Label><Input className="w-20" type="number" value={policies.sessionTimeoutMinutes} onChange={(e) => updatePolicy('sessionTimeoutMinutes', Number(e.target.value))} disabled={!canConfigurePolicies} /></div>
+              <div className="flex items-center justify-between"><Label>Device trust</Label><Switch checked={policies.deviceTrustEnabled} onCheckedChange={(v) => updatePolicy('deviceTrustEnabled', v)} disabled={!canConfigurePolicies} /></div>
+              <div className="text-xs text-gray-500">2FA enforced roles: {policies.enforceTwoFactorRoles.join(', ')}</div>
+              <div className="text-xs text-gray-500">Methods: {policies.allowedTwoFactorMethods.join(', ')}</div>
+              {!enterpriseAccess && <div className="text-xs text-amber-700 bg-amber-50 border border-amber-100 rounded-md p-2">Enterprise unlocks advanced monitoring and automated threat workflows.</div>}
+            </div>
           </div>
         </TabsContent>
       </Tabs>
@@ -761,11 +423,9 @@ export function AuditLogsPage() {
               Are you sure you want to terminate this session? The user will be logged out immediately.
             </DialogDescription>
           </DialogHeader>
-          {selectedSession && (
+          {selectedSessionId && (
             <div className="bg-slate-50 p-4 rounded-lg space-y-2">
-              <p><strong>User:</strong> {selectedSession.user.name}</p>
-              <p><strong>Device:</strong> {selectedSession.deviceName}</p>
-              <p><strong>Location:</strong> {selectedSession.location}</p>
+              <p>This session will be terminated immediately.</p>
             </div>
           )}
           <DialogFooter>
@@ -777,6 +437,38 @@ export function AuditLogsPage() {
               Terminate Session
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!selectedLog} onOpenChange={(open) => !open && setSelectedLog(null)}>
+        <DialogContent className="bg-white/90 backdrop-blur-xl">
+          {selectedLog && (
+            <>
+              <DialogHeader>
+                <DialogTitle className="text-[#1E1B8F]">Audit Event Details</DialogTitle>
+                <DialogDescription>Full compliance breakdown and risk analysis</DialogDescription>
+              </DialogHeader>
+              <div className="grid grid-cols-2 gap-2 text-sm">
+                <p><strong>User:</strong> {selectedLog.userName}</p>
+                <p><strong>Role:</strong> {selectedLog.role}</p>
+                <p><strong>Action:</strong> {selectedLog.action}</p>
+                <p><strong>Module:</strong> {selectedLog.module}</p>
+                <p><strong>Resource:</strong> {selectedLog.resource}</p>
+                <p><strong>Resource ID:</strong> {selectedLog.resourceId}</p>
+                <p><strong>Device:</strong> {selectedLog.device}</p>
+                <p><strong>Browser:</strong> {selectedLog.browser}</p>
+                <p><strong>Location:</strong> {selectedLog.location}</p>
+                <p><strong>IP:</strong> {selectedLog.ipAddress}</p>
+                <p><strong>Risk:</strong> {selectedLog.riskLevel}</p>
+                <p><strong>Status:</strong> {selectedLog.status}</p>
+              </div>
+              {selectedLog.details && <div className="text-sm bg-gray-50 border border-gray-100 rounded-md p-2">{selectedLog.details}</div>}
+              <DialogFooter>
+                <Button variant="outline" onClick={() => selectedLog && flagLog(selectedLog.id)}><AlertTriangle className="w-4 h-4 mr-2" />Flag suspicious activity</Button>
+                <Button onClick={() => setSelectedLog(null)}>Close</Button>
+              </DialogFooter>
+            </>
+          )}
         </DialogContent>
       </Dialog>
     </div>

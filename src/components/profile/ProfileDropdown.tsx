@@ -24,6 +24,13 @@ export function ProfileDropdown({ onNavigate, onLogout, onDeleteAccount }: Profi
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  useEffect(() => {
+    document.body.dataset.overlayOpen = isOpen ? 'true' : 'false';
+    return () => {
+      document.body.dataset.overlayOpen = 'false';
+    };
+  }, [isOpen]);
+
   const menuItems = [
     {
       id: 'profile',

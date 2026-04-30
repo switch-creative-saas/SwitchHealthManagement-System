@@ -8,6 +8,7 @@ import { Switch } from '@/components/ui/switch';
 import { toast } from 'sonner';
 import type { PageType } from '@/types';
 import type { UserRole } from '@/contexts/AuthContext';
+import { useSecurityAudit } from '@/contexts/SecurityAuditContext';
 
 type Stage = 'login' | 'signup' | 'onboarding' | 'welcome';
 type FacilityType = 'Hospital' | 'Clinic' | 'Pharmacy' | 'Lab';
@@ -78,6 +79,7 @@ function generateSwitchId(): string {
 }
 
 export function AuthGatewayPage({ onAuthenticated, defaultTheme }: AuthGatewayPageProps) {
+  const { logLoginAttempt } = useSecurityAudit();
   const [stage, setStage] = useState<Stage>('login');
   const [loading, setLoading] = useState(false);
   const [authError, setAuthError] = useState('');
@@ -167,17 +169,21 @@ export function AuthGatewayPage({ onAuthenticated, defaultTheme }: AuthGatewayPa
       const existing = users.find((user) => user.email.toLowerCase() === loginForm.email.toLowerCase());
       if (!existing || !existing.passwordHash) {
         setAuthError('Invalid email or password');
+        logLoginAttempt('failed', 'Invalid credentials');
         return;
       }
       const providedHash = await hashPassword(loginForm.password);
       if (providedHash !== existing.passwordHash) {
         setAuthError('Invalid email or password');
+        logLoginAttempt('failed', 'Invalid credentials');
         return;
       }
       if (!existing.verifiedEmail) {
         setAuthError('Email not verified. Please verify before continuing.');
+        logLoginAttempt('failed', 'Email not verified');
         return;
       }
+      logLoginAttempt('success', 'Password login');
       authenticateSuccess(existing);
     } catch {
       setAuthError('Login failed. Try again.');
@@ -235,6 +241,7 @@ export function AuthGatewayPage({ onAuthenticated, defaultTheme }: AuthGatewayPa
       const failed = Math.random() < 0.05;
       if (failed) {
         setAuthError('Google authentication failed. Please retry.');
+        logLoginAttempt('failed', 'Google authentication failed');
         return;
       }
       const googleProfile = {
@@ -256,6 +263,7 @@ export function AuthGatewayPage({ onAuthenticated, defaultTheme }: AuthGatewayPa
       };
       if (!existing) setUsers([user, ...users]);
       setPendingUser(user);
+      logLoginAttempt('success', 'Google sign-in');
       setOnboardingForm((prev) => ({ ...prev, role: user.role ?? 'doctor', facilityName: user.facilityName ?? prev.facilityName }));
       setStage('onboarding');
       toast.success('Google sign-in successful. Complete onboarding to continue.');

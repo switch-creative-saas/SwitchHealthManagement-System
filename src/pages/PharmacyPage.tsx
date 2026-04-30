@@ -265,6 +265,7 @@ export function PharmacyPage() {
     if (!patientPrescription || !med || !dispenseForm.quantity) return toast.error('Complete dispensation details');
     if (med.stock < dispenseForm.quantity) return toast.error('Insufficient stock');
     setMedications((prev) => prev.map((m) => (m.id === med.id ? { ...m, stock: m.stock - Number(dispenseForm.quantity) } : m)));
+    const resultingStock = med.stock - Number(dispenseForm.quantity);
     setDispensations((prev) => [
       {
         id: `disp-${Date.now()}`,
@@ -284,6 +285,11 @@ export function PharmacyPage() {
     ]);
     toast.success('Medication dispensed and synced to EMR + Billing');
     notify('dispensed', `${med.name} dispensed for ${patientPrescription.patient_name}`);
+    window.dispatchEvent(new CustomEvent('switch-health:training-action', { detail: { action: 'pharmacy:dispensed' } }));
+    window.dispatchEvent(new CustomEvent('switch-health:training-action', { detail: { action: 'pharmacy:inventory-updated' } }));
+    if (resultingStock <= med.reorder_threshold) {
+      window.dispatchEvent(new CustomEvent('switch-health:training-action', { detail: { action: 'pharmacy:low-stock-handled' } }));
+    }
     setDispenseOpen(false);
   }
 
@@ -688,7 +694,17 @@ export function PharmacyPage() {
             </div>
             <div>
               <Label>Medication</Label>
-              <select className="mt-1 w-full rounded-md border border-input px-3 py-2 text-sm" value={dispenseForm.medication_id} onChange={(e) => setDispenseForm((s) => ({ ...s, medication_id: e.target.value }))}>
+              <select
+                className="mt-1 w-full rounded-md border border-input px-3 py-2 text-sm"
+                value={dispenseForm.medication_id}
+                onChange={(e) => {
+                  const selectedMed = medications.find((m) => m.id === e.target.value);
+                  setDispenseForm((s) => ({ ...s, medication_id: e.target.value }));
+                  if (selectedMed) {
+                    window.dispatchEvent(new CustomEvent('switch-health:training-action', { detail: { action: 'pharmacy:stock-checked' } }));
+                  }
+                }}
+              >
                 <option value="">Select medication</option>
                 {medications.map((m) => <option key={m.id} value={m.id}>{m.name} ({m.stock} in stock)</option>)}
               </select>

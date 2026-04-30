@@ -118,6 +118,46 @@ export function NotificationBell() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  useEffect(() => {
+    document.body.dataset.overlayOpen = isOpen ? 'true' : 'false';
+    return () => {
+      document.body.dataset.overlayOpen = 'false';
+    };
+  }, [isOpen]);
+
+  useEffect(() => {
+    const onNotify = (event: Event) => {
+      const detail = (event as CustomEvent<{ module?: string; type?: string; message?: string }>).detail;
+      if (!detail?.message) return;
+      const type: Notification['type'] =
+        detail.module === 'lab'
+          ? 'lab'
+          : detail.module === 'billing'
+            ? 'payment'
+            : detail.module === 'support'
+              ? 'system'
+              : detail.module === 'auth'
+                ? 'staff'
+                : 'system';
+      const message = detail.message;
+      const priority: Notification['priority'] = /critical|failed|unauthorized|threat/i.test(message) ? 'high' : 'medium';
+      setNotifications((prev) => [
+        {
+          id: `N-${Date.now()}`,
+          type,
+          title: `${(detail.module ?? 'system').toUpperCase()} Alert`,
+          message,
+          timestamp: new Date().toISOString(),
+          read: false,
+          priority,
+        },
+        ...prev,
+      ].slice(0, 30));
+    };
+    window.addEventListener('switch-health:notify', onNotify as EventListener);
+    return () => window.removeEventListener('switch-health:notify', onNotify as EventListener);
+  }, []);
+
   const markAsRead = (id: string) => {
     setNotifications(prev =>
       prev.map(n => n.id === id ? { ...n, read: true } : n)

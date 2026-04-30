@@ -101,6 +101,10 @@ export function AppointmentsPage() {
     if (isMobile) setView('list');
   }, [isMobile]);
 
+  useEffect(() => {
+    window.dispatchEvent(new CustomEvent('switch-health:training-action', { detail: { action: 'appointments:viewed' } }));
+  }, []);
+
   const visibleAppointments = useMemo(() => {
     const base = appointments.filter((appointment) => {
       if (role === 'doctor') return appointment.doctor === userName;
@@ -185,6 +189,9 @@ export function AppointmentsPage() {
     setAppointments((prev) => [...prev, next]);
     setShowNewModal(false);
     toast.success('Appointment created. Doctor has been notified.');
+    window.dispatchEvent(new CustomEvent('switch-health:training-action', { detail: { action: 'appointments:created' } }));
+    window.dispatchEvent(new CustomEvent('switch-health:training-action', { detail: { action: 'appointments:doctor-assigned' } }));
+    window.dispatchEvent(new CustomEvent('switch-health:training-action', { detail: { action: 'appointments:confirmation-sent' } }));
   };
 
   const mutateStatus = (id: string, status: AppointmentStatus, reason?: string) => {

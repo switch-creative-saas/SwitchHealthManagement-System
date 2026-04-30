@@ -67,7 +67,7 @@ const knowledgeBase: KnowledgeArticle[] = [
 export function HelpSupportPage() {
   const { currentRole, userName } = useAuth();
   const { subscription, hasAccess, addAudit } = useSubscription();
-  const { replayCurrentRoleTour, startTourById } = useGuidedTour();
+  const { replayCurrentRoleTour, startTourById, startIntroTour, startWorkflowTraining, startAdvancedTour, progress } = useGuidedTour();
   const [search, setSearch] = useState('');
   const [ticketDialogOpen, setTicketDialogOpen] = useState(false);
   const [feedbackDialogOpen, setFeedbackDialogOpen] = useState(false);
@@ -133,6 +133,9 @@ export function HelpSupportPage() {
   const filteredTickets = canManageTickets ? tickets : tickets.filter((ticket) => ticket.owner === userName);
   const filteredKb = knowledgeBase.filter((article) => !search.trim() || article.title.toLowerCase().includes(search.toLowerCase()) || article.category.toLowerCase().includes(search.toLowerCase()));
   const currentPageHint = "It looks like you're in Help & Support, do you want to create a billing support ticket?";
+  const roleCompletion = progress.roleCompletion[currentRole] ?? 0;
+  const completionRate = Math.min(100, Math.round((progress.completedTours.length / 12) * 100));
+  const isAdminRole = currentRole === 'super-admin' || currentRole === 'hospital-admin';
 
   const smartSuggestions = useMemo(
     () => [
@@ -272,6 +275,50 @@ export function HelpSupportPage() {
 
       <div className="grid xl:grid-cols-3 gap-4">
         <div className="xl:col-span-2 space-y-4">
+          <div className="premium-card p-5">
+            <h3 className="font-semibold text-gray-900 mb-3">Training Center</h3>
+            <p className="text-sm text-gray-600">Role-based onboarding with intro, workflow drills, advanced modules, and replay support.</p>
+            <div className="mt-3 h-2 rounded-full bg-gray-100 overflow-hidden">
+              <div className="h-full rounded-full bg-royal-600 transition-all" style={{ width: `${completionRate}%` }} />
+            </div>
+            <div className="mt-2 flex flex-wrap gap-2 text-xs">
+              <span className="px-2 py-1 rounded-full bg-royal-50 text-royal-700 border border-royal-100">Overall: {completionRate}%</span>
+              <span className="px-2 py-1 rounded-full bg-green-50 text-green-700 border border-green-100">Role Workflow: {roleCompletion}%</span>
+              <span className="px-2 py-1 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-100">Skill Level: {progress.skillLevel}</span>
+              {completionRate >= 90 && <span className="px-2 py-1 rounded-full bg-amber-50 text-amber-700 border border-amber-100">You are ready to use Switch Health</span>}
+            </div>
+            <div className="mt-3 grid sm:grid-cols-2 gap-2">
+              <Button variant="outline" onClick={startIntroTour}>Start Intro Tour</Button>
+              <Button variant="outline" onClick={() => startWorkflowTraining()}>Start Workflow Training</Button>
+              <Button variant="outline" onClick={() => startAdvancedTour('feature-ai-diagnosis')}>AI Diagnosis Tour</Button>
+              <Button variant="outline" onClick={() => startAdvancedTour('feature-telemedicine')}>Telemedicine Tour</Button>
+              <Button variant="outline" onClick={() => startAdvancedTour('feature-billing-insurance')}>Billing & Insurance Tour</Button>
+              <Button variant="outline" onClick={() => startAdvancedTour('feature-analytics')}>Analytics Tour</Button>
+            </div>
+            <div className="mt-2 text-xs text-gray-500">
+              Subscription-aware access: Free (basic workflow), Pro (full module training), Enterprise (advanced + custom workflows).
+            </div>
+          </div>
+
+          {isAdminRole && (
+            <div className="premium-card p-5">
+              <h3 className="font-semibold text-gray-900 mb-3">Onboarding Admin Control Panel</h3>
+              <div className="grid sm:grid-cols-3 gap-2 text-sm">
+                <Metric label="Staff Completed" value={`${Math.max(1, progress.completedTours.length)} users`} />
+                <Metric label="Pending Assignment" value={`${Math.max(0, 10 - progress.completedTours.length)} users`} />
+                <Metric label="Mandatory Mode" value={completionRate < 100 ? 'Enabled' : 'Completed'} />
+              </div>
+              <div className="mt-3 flex flex-wrap gap-2">
+                <Button variant="outline" size="sm" onClick={() => { addAudit('Onboarding assigned to staff by admin'); toast.success('Onboarding assigned to staff'); }}>
+                  Assign onboarding to staff
+                </Button>
+                <Button variant="outline" size="sm" onClick={() => { addAudit('Mandatory onboarding toggle updated'); toast.success('Mandatory onboarding requirement updated'); }}>
+                  Require onboarding before full system use
+                </Button>
+              </div>
+            </div>
+          )}
+
           <div className="premium-card p-5">
             <h3 className="font-semibold text-gray-900 mb-3">Quick Actions</h3>
             <div className="grid sm:grid-cols-2 gap-2">

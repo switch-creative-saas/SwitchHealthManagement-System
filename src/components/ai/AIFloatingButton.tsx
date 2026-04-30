@@ -9,8 +9,9 @@ export function AIFloatingButton({ onClick }: AIFloatingButtonProps) {
   return (
     <button
       onClick={onClick}
+      data-floating-scan-button="true"
       className={cn(
-        "fixed bottom-6 right-6 z-40 w-14 h-14 rounded-2xl flex items-center justify-center",
+        "ai-float-btn fixed z-40 w-14 h-14 rounded-2xl flex items-center justify-center",
         "bg-gradient-to-br from-royal-500 to-royal-700",
         "shadow-lg shadow-royal-500/30",
         "border border-white/20",
