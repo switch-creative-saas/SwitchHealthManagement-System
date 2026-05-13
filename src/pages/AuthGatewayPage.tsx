@@ -35,6 +35,11 @@ const roles: { label: string; value: UserRole }[] = [
   { label: 'Pharmacist', value: 'pharmacist' },
   { label: 'Lab Scientist', value: 'lab-scientist' },
   { label: 'Admin', value: 'hospital-admin' },
+  { label: 'Epidemiologist', value: 'epidemiologist' },
+  { label: 'Public Health Officer', value: 'public-health-officer' },
+  { label: 'Government Authority', value: 'government-authority' },
+  { label: 'Community Health Worker', value: 'community-health-worker' },
+  { label: 'WHO / NGO Observer', value: 'who-ngo-observer' },
 ];
 
 interface AuthGatewayPageProps {
@@ -69,6 +74,15 @@ function roleRedirect(role: UserRole): PageType {
   if (role === 'hospital-admin' || role === 'super-admin') return 'analytics';
   if (role === 'pharmacist') return 'pharmacy';
   if (role === 'lab-scientist' || role === 'lab-technician') return 'laboratory';
+  if (
+    role === 'epidemiologist' ||
+    role === 'public-health-officer' ||
+    role === 'government-authority' ||
+    role === 'community-health-worker' ||
+    role === 'who-ngo-observer'
+  ) {
+    return 'switch-sentinel';
+  }
   return 'dashboard';
 }
 

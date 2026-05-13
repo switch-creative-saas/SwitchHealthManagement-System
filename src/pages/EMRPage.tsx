@@ -27,6 +27,7 @@ import { Input } from '@/components/ui/input';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { getPatientBySwitchId } from '@/lib/patientRegistry';
+import { SENTINEL_CLINICAL_EVENT, type SentinelClinicalPayload } from '@/lib/sentinel/events';
 
 type EmrTab = 'overview' | 'clinical-notes' | 'lab-results' | 'documents' | 'timeline';
 type TimelineType = 'clinical-note' | 'lab-uploaded' | 'document-added' | 'diagnosis-updated' | 'prescription-issued';
@@ -211,6 +212,21 @@ export function EMRPage({ patientSwitchId, onBackToPatients }: EMRPageProps) {
     setNoteLocked(true);
     addAudit('clinical_note_signed_and_locked');
     toast.success('Electronic signature applied and note locked.');
+    const sid = patient?.switchId ?? patientSwitchId ?? '';
+    if (sid && (soap.primaryDiagnosis.trim() || soap.secondaryDiagnosis.trim())) {
+      window.dispatchEvent(
+        new CustomEvent<SentinelClinicalPayload>(SENTINEL_CLINICAL_EVENT, {
+          detail: {
+            patientSwitchId: sid,
+            primaryDiagnosis: soap.primaryDiagnosis,
+            secondaryDiagnosis: soap.secondaryDiagnosis,
+            facilityName: 'Lagos Central Hospital',
+            state: patient?.state ?? 'Lagos',
+            lga: 'Ikeja',
+          },
+        }),
+      );
+    }
   };
 
   const copyPrevious = () => {

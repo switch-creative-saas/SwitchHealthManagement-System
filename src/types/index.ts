@@ -582,6 +582,7 @@ export type PageType =
   | 'analytics'
   | 'human-resources'
   | 'administration'
+  | 'switch-sentinel'
   | 'subscription'
   | 'audit-logs'
   | 'settings'

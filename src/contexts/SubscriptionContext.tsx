@@ -20,7 +20,8 @@ export type FeatureKey =
   | 'multi_hospital'
   | 'inter_hospital_referrals'
   | 'custom_workflows'
-  | 'api_access';
+  | 'api_access'
+  | 'public_health_sentinel';
 
 type UsageMetric = 'staff' | 'patients' | 'storageGB';
 type PaymentMethodType = 'card' | 'bank_transfer';
@@ -138,6 +139,7 @@ const PLAN_ACCESS: Record<PlanTier, FeatureKey[]> = {
     'inter_hospital_referrals',
     'custom_workflows',
     'api_access',
+    'public_health_sentinel',
   ],
 };
 

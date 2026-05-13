@@ -59,6 +59,7 @@ import {
 } from '@/components/ui/popover';
 import { useAuth, type UserRole } from '@/contexts/AuthContext';
 import { useSubscription } from '@/contexts/SubscriptionContext';
+import { SENTINEL_LAB_EVENT, type SentinelLabPayload } from '@/lib/sentinel/events';
 
 type LabStatus = 'pending' | 'processing' | 'completed' | 'cancelled';
 type LabPriority = 'routine' | 'urgent' | 'stat';
@@ -580,6 +581,22 @@ export function LaboratoryPage() {
     window.dispatchEvent(new CustomEvent('switch-health:training-action', { detail: { action: 'laboratory:results-submitted' } }));
     window.dispatchEvent(new CustomEvent('switch-health:training-action', { detail: { action: 'laboratory:report-uploaded' } }));
     window.dispatchEvent(new CustomEvent('switch-health:training-action', { detail: { action: 'laboratory:doctor-notified' } }));
+    window.dispatchEvent(
+      new CustomEvent<SentinelLabPayload>(SENTINEL_LAB_EVENT, {
+        detail: {
+          orderId: sheetOrder.id,
+          patientName: sheetOrder.patientName,
+          tests: resultDraft.map((r) => ({
+            name: r.testName,
+            value: r.value,
+            interpretation: r.interpretation,
+            flaggedPositive: /positive|detected|reactive|elevated|critical/i.test(`${r.value} ${r.interpretation}`),
+          })),
+          state: 'Lagos',
+          lga: 'Ikeja',
+        },
+      }),
+    );
     setSheetOrder(null);
   };
 

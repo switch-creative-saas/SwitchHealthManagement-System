@@ -16,7 +16,12 @@ export type UserRole =
   | 'billing-officer'
   | 'insurance-officer'
   | 'it-officer'
-  | 'support-agent';
+  | 'support-agent'
+  | 'public-health-officer'
+  | 'epidemiologist'
+  | 'government-authority'
+  | 'community-health-worker'
+  | 'who-ngo-observer';
 
 type PermissionAction = 'view' | 'create' | 'edit' | 'delete' | 'export' | 'approve';
 
@@ -51,6 +56,7 @@ const ROLE_CONFIGS: Record<UserRole, RoleConfig> = {
       { module: 'Human Resources', actions: ['view', 'create', 'edit', 'delete', 'export', 'approve'] },
       { module: 'Administration', actions: ['view', 'create', 'edit', 'delete', 'export', 'approve'] },
       { module: 'Settings', actions: ['view', 'create', 'edit', 'delete', 'export', 'approve'] },
+      { module: 'Public Health', actions: ['view', 'create', 'edit', 'delete', 'export', 'approve'] },
     ],
   },
   'hospital-admin': {
@@ -68,6 +74,7 @@ const ROLE_CONFIGS: Record<UserRole, RoleConfig> = {
       { module: 'Human Resources', actions: ['view', 'create', 'edit', 'delete'] },
       { module: 'Administration', actions: ['view', 'create', 'edit', 'delete'] },
       { module: 'Settings', actions: ['view', 'edit'] },
+      { module: 'Public Health', actions: ['view', 'create', 'export'] },
     ],
   },
   'doctor': {
@@ -111,6 +118,7 @@ const ROLE_CONFIGS: Record<UserRole, RoleConfig> = {
       { module: 'Dashboard', actions: ['view'] },
       { module: 'Patients', actions: ['view'] },
       { module: 'Laboratory', actions: ['view', 'create', 'edit', 'delete', 'export'] },
+      { module: 'Public Health', actions: ['view', 'create', 'export'] },
     ],
   },
   'lab-technician': {
@@ -172,6 +180,56 @@ const ROLE_CONFIGS: Record<UserRole, RoleConfig> = {
       { module: 'Analytics', actions: ['view'] },
     ],
   },
+  'public-health-officer': {
+    name: 'Public Health Officer',
+    description: 'Regional surveillance & reporting',
+    permissions: [
+      { module: 'Dashboard', actions: ['view'] },
+      { module: 'Patients', actions: ['view'] },
+      { module: 'EMR', actions: ['view'] },
+      { module: 'Laboratory', actions: ['view'] },
+      { module: 'Analytics', actions: ['view', 'export'] },
+      { module: 'Public Health', actions: ['view', 'create', 'edit', 'export'] },
+    ],
+  },
+  epidemiologist: {
+    name: 'Epidemiologist',
+    description: 'National outbreak analytics & thresholds',
+    permissions: [
+      { module: 'Dashboard', actions: ['view'] },
+      { module: 'Patients', actions: ['view'] },
+      { module: 'EMR', actions: ['view'] },
+      { module: 'Laboratory', actions: ['view'] },
+      { module: 'Analytics', actions: ['view', 'export'] },
+      { module: 'Public Health', actions: ['view', 'create', 'edit', 'delete', 'export', 'approve'] },
+    ],
+  },
+  'government-authority': {
+    name: 'Government Authority',
+    description: 'National visibility & policy dashboards',
+    permissions: [
+      { module: 'Dashboard', actions: ['view'] },
+      { module: 'Analytics', actions: ['view', 'export'] },
+      { module: 'Administration', actions: ['view'] },
+      { module: 'Public Health', actions: ['view', 'export', 'approve'] },
+    ],
+  },
+  'community-health-worker': {
+    name: 'Community Health Worker',
+    description: 'Community outbreak signals',
+    permissions: [
+      { module: 'Dashboard', actions: ['view'] },
+      { module: 'Public Health', actions: ['view', 'create'] },
+    ],
+  },
+  'who-ngo-observer': {
+    name: 'WHO / NGO Observer',
+    description: 'Read-only epidemiology observer',
+    permissions: [
+      { module: 'Dashboard', actions: ['view'] },
+      { module: 'Public Health', actions: ['view'] },
+    ],
+  },
 };
 
 const MODULE_MAP: Record<string, string> = {
@@ -179,6 +237,9 @@ const MODULE_MAP: Record<string, string> = {
   'patient-identity': 'Patients',
   'patients': 'Patients',
   'emr': 'EMR',
+  'telemedicine': 'Appointments',
+  'ai-clinical-intelligence': 'EMR',
+  'switch-network': 'Administration',
   'appointments': 'Appointments',
   'laboratory': 'Laboratory',
   'pharmacy': 'Pharmacy',
@@ -186,6 +247,7 @@ const MODULE_MAP: Record<string, string> = {
   'analytics': 'Analytics',
   'human-resources': 'Human Resources',
   'administration': 'Administration',
+  'switch-sentinel': 'Public Health',
   'subscription': 'Settings',
   'audit-logs': 'Settings',
   'settings': 'Settings',
@@ -277,6 +339,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     'insurance-officer': { name: 'Insurance Officer Chika', email: 'insurance@switchhealth.ng', avatar: 'IO' },
     'it-officer': { name: 'IT Officer Michael', email: 'it@switchhealth.ng', avatar: 'IM' },
     'support-agent': { name: 'Support Agent Grace', email: 'support@switchhealth.ng', avatar: 'SG' },
+    'public-health-officer': { name: 'PHO Ibrahim Danladi', email: 'pho@switchhealth.ng', avatar: 'PH' },
+    epidemiologist: { name: 'Epidemiologist Dr. Ngozi Eze', email: 'epi@switchhealth.ng', avatar: 'EP' },
+    'government-authority': { name: 'Gov. Authority Panel', email: 'authority@switchhealth.ng', avatar: 'GA' },
+    'community-health-worker': { name: 'CHW Fatima Yusuf', email: 'chw@switchhealth.ng', avatar: 'CH' },
+    'who-ngo-observer': { name: 'WHO Observer', email: 'observer@switchhealth.ng', avatar: 'WO' },
   };
 
   const userInfo = roleDisplayInfo[currentRole];

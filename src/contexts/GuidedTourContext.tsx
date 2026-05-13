@@ -250,6 +250,67 @@ const workflowTours: Record<UserRole, TourDefinition> = {
       { id: 'sa-3', page: 'help', title: 'Run diagnostics', description: 'Gather troubleshooting context and close loop.' },
     ],
   },
+  'public-health-officer': {
+    id: 'workflow-public-health-officer',
+    type: 'workflow',
+    layer: 'workflow',
+    role: 'public-health-officer',
+    title: 'Public Health Surveillance',
+    goal: 'Monitor regional signals and line lists.',
+    steps: [
+      { id: 'pho-1', page: 'switch-sentinel', title: 'Open Switch Sentinel', description: 'Enter the national surveillance fabric.', selector: '[data-tour-id="sidebar-switch-sentinel"]' },
+      { id: 'pho-2', page: 'switch-sentinel', title: 'Review surveillance dashboard', description: 'Scan active cases, trends, and export paths.' },
+      { id: 'pho-3', page: 'switch-sentinel', title: 'Triage alerts', description: 'Acknowledge public health alerts and route response.' },
+    ],
+  },
+  epidemiologist: {
+    id: 'workflow-epidemiologist',
+    type: 'workflow',
+    layer: 'workflow',
+    role: 'epidemiologist',
+    title: 'Epidemiology Command',
+    goal: 'Run outbreak analytics and threshold policy.',
+    steps: [
+      { id: 'epi-1', page: 'switch-sentinel', title: 'Sentinel overview', description: 'Confirm tenant scope and hierarchy filters.', selector: '[data-tour-id="sidebar-switch-sentinel"]' },
+      { id: 'epi-2', page: 'switch-sentinel', title: 'Outbreak engine', description: 'Validate signals and recommended interventions.' },
+      { id: 'epi-3', page: 'switch-sentinel', title: 'Epidemiology AI', description: 'Use Gulia briefing for situational awareness.' },
+    ],
+  },
+  'government-authority': {
+    id: 'workflow-government-authority',
+    type: 'workflow',
+    layer: 'workflow',
+    role: 'government-authority',
+    title: 'National visibility',
+    goal: 'Review aggregate indicators without direct identifiers.',
+    steps: [
+      { id: 'gov-1', page: 'switch-sentinel', title: 'National dashboard', description: 'Review jurisdiction-scoped aggregates.', selector: '[data-tour-id="sidebar-switch-sentinel"]' },
+      { id: 'gov-2', page: 'switch-sentinel', title: 'Export reporting', description: 'Generate government-ready surveillance exports.' },
+    ],
+  },
+  'community-health-worker': {
+    id: 'workflow-chw',
+    type: 'workflow',
+    layer: 'workflow',
+    role: 'community-health-worker',
+    title: 'Community signals',
+    goal: 'Submit offline-capable community reports.',
+    steps: [
+      { id: 'chw-1', page: 'switch-sentinel', title: 'Community reporting', description: 'Capture symptom clusters and shortages.', selector: '[data-tour-id="sidebar-switch-sentinel"]' },
+      { id: 'chw-2', page: 'switch-sentinel', title: 'Sync status', description: 'Confirm online/offline sync when connectivity returns.' },
+    ],
+  },
+  'who-ngo-observer': {
+    id: 'workflow-who-ngo',
+    type: 'workflow',
+    layer: 'workflow',
+    role: 'who-ngo-observer',
+    title: 'Observer access',
+    goal: 'Read-only monitoring for partner visibility.',
+    steps: [
+      { id: 'who-1', page: 'switch-sentinel', title: 'Observer dashboards', description: 'Review permitted aggregate analytics.', selector: '[data-tour-id="sidebar-switch-sentinel"]' },
+    ],
+  },
 };
 
 const microTours: Record<string, TourDefinition> = {

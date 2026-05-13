@@ -24,6 +24,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSubscription } from '@/contexts/SubscriptionContext';
+import { SENTINEL_PHARMACY_EVENT, type SentinelPharmacyPayload } from '@/lib/sentinel/events';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -199,6 +200,22 @@ export function PharmacyPage() {
     if (lowNames && lowNames !== alertRef.current.low) {
       alertRef.current.low = lowNames;
       notify('low-stock', `Low stock alert: ${lowNames}`);
+      medications
+        .filter((m) => medicationStatus(m) === 'low' || medicationStatus(m) === 'out-of-stock')
+        .slice(0, 6)
+        .forEach((m) => {
+          window.dispatchEvent(
+            new CustomEvent<SentinelPharmacyPayload>(SENTINEL_PHARMACY_EVENT, {
+              detail: {
+                itemName: m.name,
+                sku: m.id,
+                quantityInStock: m.stock,
+                reorderLevel: m.reorder_threshold,
+                facilityName: 'Pharmacy node',
+              },
+            }),
+          );
+        });
     }
 
     const expiryNames = medications

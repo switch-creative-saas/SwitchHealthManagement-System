@@ -27,12 +27,14 @@ import { SubscriptionPage } from '@/pages/SubscriptionPage';
 import { AuditLogsPage } from '@/pages/AuditLogsPage';
 import { SettingsPage } from '@/pages/SettingsPage';
 import { HelpSupportPage } from '@/pages/HelpSupportPage';
+import { SwitchSentinelPage } from '@/pages/SwitchSentinelPage';
 import { AuthGatewayPage } from '@/pages/AuthGatewayPage';
 import { Toaster } from '@/components/ui/sonner';
 import type { PageType } from '@/types';
 import { GuidedTourProvider } from '@/contexts/GuidedTourContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { SecurityAuditProvider } from '@/contexts/SecurityAuditContext';
+import { SentinelProvider } from '@/contexts/SentinelContext';
 
 function App() {
   return (
@@ -64,6 +66,7 @@ function AppShell() {
     pharmacy: '/pharmacy',
     billing: '/billing',
     analytics: '/analytics',
+    'switch-sentinel': '/switch-sentinel',
     'human-resources': '/human-resources',
     administration: '/administration',
     subscription: '/subscription',
@@ -87,6 +90,11 @@ function AppShell() {
     }
     if (path === '/patients') {
       setCurrentPage('patients');
+      setEmrSwitchId(null);
+      return;
+    }
+    if (path === '/switch-sentinel' || path.startsWith('/switch-sentinel')) {
+      setCurrentPage('switch-sentinel');
       setEmrSwitchId(null);
       return;
     }
@@ -134,6 +142,10 @@ function AppShell() {
       window.history.pushState({}, '', path);
       return;
     }
+    if (page === 'switch-sentinel') {
+      window.history.pushState({}, '', '/switch-sentinel?view=surveillance');
+      return;
+    }
     const path = pagePathMap[page as Exclude<PageType, 'emr'>] ?? '/';
     window.history.pushState({}, '', path);
   };
@@ -170,6 +182,8 @@ function AppShell() {
         return <BillingPage />;
       case 'analytics':
         return <AnalyticsPage />;
+      case 'switch-sentinel':
+        return <SwitchSentinelPage />;
       case 'human-resources':
         return <HumanResourcesPage />;
       case 'administration':
@@ -213,6 +227,8 @@ function AppShell() {
         return 'Billing & Insurance';
       case 'analytics':
         return 'Analytics';
+      case 'switch-sentinel':
+        return 'Switch Sentinel';
       case 'human-resources':
         return 'Human Resources';
       case 'administration':
@@ -273,6 +289,7 @@ function AppShell() {
         <AuthGatewayPage onAuthenticated={handleAuthenticated} defaultTheme={document.documentElement.classList.contains('dark-theme') ? 'dark' : 'light'} />
       ) : (
         <GuidedTourProvider currentPage={currentPage} currentRole={currentRole} userName={userName} onNavigate={navigateToPage}>
+          <SentinelProvider>
           <AppLayout>
             <div className="app-shell flex h-screen overflow-hidden">
         <Sidebar 
@@ -312,6 +329,7 @@ function AppShell() {
         <Toaster position="top-right" />
             </div>
           </AppLayout>
+          </SentinelProvider>
         </GuidedTourProvider>
       )}
     </SecurityAuditProvider>

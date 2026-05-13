@@ -1,18 +1,20 @@
-// Sidebar component - no state needed here
-import { 
-  LayoutDashboard, 
+// Sidebar component — Sentinel submenu uses Public Health RBAC
+import { Fragment, useState, type ElementType } from 'react';
+import {
+  LayoutDashboard,
   CreditCard,
-  Users, 
-  FileText, 
+  Users,
+  FileText,
   CalendarDays,
-  FlaskConical, 
-  Pill, 
-  BarChart3, 
-  Settings, 
+  FlaskConical,
+  Pill,
+  BarChart3,
+  Settings,
   HelpCircle,
   Lock,
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
   Sparkles,
   UserCog,
   Building2,
@@ -23,12 +25,25 @@ import {
   Video,
   BrainCircuit,
   Network,
+  ShieldAlert,
+  Activity,
+  Radar,
+  AlertTriangle,
+  Globe2,
+  Link2,
+  Syringe,
+  Bell,
+  LineChart,
+  Megaphone,
+  Microscope,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useResponsive } from '@/contexts/ResponsiveContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSubscription, type FeatureKey } from '@/contexts/SubscriptionContext';
+import { useSentinel } from '@/contexts/SentinelContext';
 import type { PageType } from '@/types';
+import type { SentinelTabId } from '@/types/sentinel';
 
 interface SidebarProps {
   currentPage: PageType;
@@ -38,9 +53,24 @@ interface SidebarProps {
 interface NavItem {
   id: PageType;
   label: string;
-  icon: React.ElementType;
+  icon: ElementType;
   module: string;
 }
+
+const SENTINEL_SUB_NAV: { tab: SentinelTabId; label: string; icon: ElementType }[] = [
+  { tab: 'surveillance', label: 'Surveillance Dashboard', icon: LayoutDashboard },
+  { tab: 'disease-tracking', label: 'Disease Tracking', icon: Activity },
+  { tab: 'case-reporting', label: 'Case Reporting', icon: Radar },
+  { tab: 'outbreak', label: 'Outbreak Intelligence', icon: AlertTriangle },
+  { tab: 'heatmaps', label: 'Geographic Heatmaps', icon: Globe2 },
+  { tab: 'contact-tracing', label: 'Contact Tracing', icon: Link2 },
+  { tab: 'vaccination', label: 'Vaccination Monitoring', icon: Syringe },
+  { tab: 'alerts', label: 'Public Health Alerts', icon: Bell },
+  { tab: 'epidemiology-analytics', label: 'Epidemiology Analytics', icon: LineChart },
+  { tab: 'emergency', label: 'Emergency Response', icon: Shield },
+  { tab: 'community', label: 'Community Reporting', icon: Megaphone },
+  { tab: 'ntd', label: 'NTD Monitoring', icon: Microscope },
+];
 
 const navItems: NavItem[] = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, module: 'Dashboard' },
@@ -55,6 +85,7 @@ const navItems: NavItem[] = [
   { id: 'pharmacy', label: 'Pharmacy', icon: Pill, module: 'Pharmacy' },
   { id: 'billing', label: 'Billing', icon: CreditCard, module: 'Billing' },
   { id: 'analytics', label: 'Analytics', icon: BarChart3, module: 'Analytics' },
+  { id: 'switch-sentinel', label: 'Switch Sentinel', icon: ShieldAlert, module: 'Public Health' },
   { id: 'human-resources', label: 'Human Resources', icon: UserCog, module: 'Human Resources' },
   { id: 'administration', label: 'Administration', icon: Building2, module: 'Administration' },
   { id: 'subscription', label: 'Subscription', icon: Receipt, module: 'Settings' },
@@ -78,6 +109,7 @@ export function Sidebar({ currentPage, onPageChange }: SidebarProps) {
     pharmacy: 'pharmacy',
     billing: 'billing',
     analytics: 'analytics_advanced',
+    'switch-sentinel': 'public_health_sentinel',
   };
 
   const handleNavClick = (id: PageType) => {
@@ -171,6 +203,9 @@ interface SidebarContentProps {
 }
 
 function SidebarContent({ currentPage, onPageChange, expanded, navItems, bottomNavItems, onToggle }: SidebarContentProps) {
+  const { setActiveTab, allowedTabs, activeTab } = useSentinel();
+  const [sentinelPublicOpen, setSentinelPublicOpen] = useState(true);
+
   return (
     <>
       {/* Logo */}
@@ -209,31 +244,90 @@ function SidebarContent({ currentPage, onPageChange, expanded, navItems, bottomN
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive = currentPage === item.id;
-          
+
+          if (item.id === 'switch-sentinel') {
+            return (
+              <Fragment key={item.id}>
+                <button
+                  type="button"
+                  onClick={() => onPageChange('switch-sentinel')}
+                  data-tour-id="sidebar-switch-sentinel"
+                  className={cn(
+                    'w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200',
+                    isActive
+                      ? 'bg-[#D4AF37]/20 text-[#D4AF37] border border-[#D4AF37]/30'
+                      : 'text-white/60 hover:bg-white/10 hover:text-white border border-transparent',
+                    !expanded && 'justify-center px-2',
+                  )}
+                  title={!expanded ? item.label : undefined}
+                >
+                  <Icon className={cn('w-5 h-5 flex-shrink-0 transition-transform duration-200', isActive && 'scale-110')} />
+                  {expanded && <span>{item.label}</span>}
+                  {isActive && expanded && <div className="ml-auto w-1.5 h-1.5 rounded-full bg-[#D4AF37] animate-pulse" />}
+                </button>
+
+                {expanded && allowedTabs.length > 0 && (
+                  <div className="mt-1 mb-2 rounded-xl border border-white/10 bg-white/5 px-2 py-2">
+                    <button
+                      type="button"
+                      onClick={() => setSentinelPublicOpen((o) => !o)}
+                      className="flex w-full items-center justify-between px-2 py-1.5 text-left text-[10px] font-semibold uppercase tracking-wider text-white/50 hover:text-white/80"
+                    >
+                      <span>Public Health / Sentinel</span>
+                      <ChevronDown className={cn('w-4 h-4 transition-transform', sentinelPublicOpen && 'rotate-180')} />
+                    </button>
+                    {sentinelPublicOpen && (
+                      <div className="mt-1 max-h-[min(320px,42vh)] overflow-y-auto space-y-0.5 pr-1 scrollbar-hide">
+                        {SENTINEL_SUB_NAV.filter((s) => allowedTabs.includes(s.tab)).map((s) => {
+                          const SubIcon = s.icon;
+                          const subActive = currentPage === 'switch-sentinel' && activeTab === s.tab;
+                          return (
+                            <button
+                              key={s.tab}
+                              type="button"
+                              onClick={() => {
+                                onPageChange('switch-sentinel');
+                                setActiveTab(s.tab);
+                              }}
+                              className={cn(
+                                'flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs transition-colors',
+                                subActive
+                                  ? 'bg-[#D4AF37]/15 text-[#D4AF37] border border-[#D4AF37]/25'
+                                  : 'text-white/55 hover:bg-white/10 hover:text-white border border-transparent',
+                              )}
+                            >
+                              <SubIcon className="h-4 w-4 flex-shrink-0 opacity-90" />
+                              <span className="leading-snug">{s.label}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </Fragment>
+            );
+          }
+
           return (
             <button
               key={item.id}
               onClick={() => onPageChange(item.id)}
               data-tour-id={`sidebar-${item.id}`}
               className={cn(
-                "w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200",
-                isActive 
-                  ? "bg-[#D4AF37]/20 text-[#D4AF37] border border-[#D4AF37]/30" 
-                  : "text-white/60 hover:bg-white/10 hover:text-white border border-transparent",
-                !expanded && "justify-center px-2"
+                'w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200',
+                isActive
+                  ? 'bg-[#D4AF37]/20 text-[#D4AF37] border border-[#D4AF37]/30'
+                  : 'text-white/60 hover:bg-white/10 hover:text-white border border-transparent',
+                !expanded && 'justify-center px-2',
               )}
               title={!expanded ? item.label : undefined}
             >
-              <Icon className={cn(
-                "w-5 h-5 flex-shrink-0 transition-transform duration-200",
-                isActive && "scale-110"
-              )} />
+              <Icon className={cn('w-5 h-5 flex-shrink-0 transition-transform duration-200', isActive && 'scale-110')} />
               {expanded && <span>{item.label}</span>}
               {expanded && item.id === 'subscription' && <Lock className="w-3.5 h-3.5 text-white/50 ml-auto" />}
-              
-              {isActive && expanded && (
-                <div className="ml-auto w-1.5 h-1.5 rounded-full bg-[#D4AF37] animate-pulse" />
-              )}
+
+              {isActive && expanded && <div className="ml-auto w-1.5 h-1.5 rounded-full bg-[#D4AF37] animate-pulse" />}
             </button>
           );
         })}
