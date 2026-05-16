@@ -1,5 +1,5 @@
 /**
- * Switch Sentinel Sync Engine
+ * VitaLink Sentinel Sync Engine
  * Handles offline-first synchronization with mock backend
  */
 

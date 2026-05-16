@@ -1,5 +1,5 @@
 /**
- * Switch Sentinel Data Generators
+ * VitaLink Sentinel Data Generators
  * Creates realistic historical epidemic data patterns
  * Based on real disease behaviors: cholera, COVID-19, malaria, Lassa fever, measles
  */

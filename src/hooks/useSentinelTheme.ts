@@ -1,7 +1,7 @@
 /**
  * useSentinelTheme Hook
  * Detects current theme mode and provides theme-aware class names
- * for the Switch Sentinel dashboard components
+ * for the VitaLink Sentinel dashboard components
  */
 
 import { useEffect, useState, useMemo } from 'react';

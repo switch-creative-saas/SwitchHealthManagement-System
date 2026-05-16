@@ -63,7 +63,7 @@ export function SwitchSentinelPage() {
               'text-[11px] uppercase tracking-[0.25em] mb-2',
               isDark ? 'text-amber-300' : 'text-amber-600'
             )}>
-              Switch Sentinel · Public Health Intelligence
+              VitaLink Sentinel · Public Health Intelligence
             </p>
             <h1 className="text-3xl sm:text-4xl font-bold text-white tracking-tight">
               National-scale surveillance fabric

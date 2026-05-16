@@ -1,5 +1,5 @@
 /**
- * Switch Sentinel Mock API
+ * VitaLink Sentinel Mock API
  * Simulates backend API with realistic delays and responses
  */
 

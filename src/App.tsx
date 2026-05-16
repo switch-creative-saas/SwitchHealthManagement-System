@@ -229,7 +229,7 @@ function AppShell() {
       case 'analytics':
         return 'Analytics';
       case 'switch-sentinel':
-        return 'Switch Sentinel';
+        return 'VitaLink Sentinel';
       case 'human-resources':
         return 'Human Resources';
       case 'administration':

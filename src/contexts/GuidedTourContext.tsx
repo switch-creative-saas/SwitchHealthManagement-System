@@ -259,7 +259,7 @@ const workflowTours: Record<UserRole, TourDefinition> = {
     title: 'Public Health Surveillance',
     goal: 'Monitor regional signals and line lists.',
     steps: [
-      { id: 'pho-1', page: 'switch-sentinel', title: 'Open Switch Sentinel', description: 'Enter the national surveillance fabric.', selector: '[data-tour-id="sidebar-switch-sentinel"]' },
+      { id: 'pho-1', page: 'switch-sentinel', title: 'Open VitaLink Sentinel', description: 'Enter the national surveillance fabric.', selector: '[data-tour-id="sidebar-switch-sentinel"]' },
       { id: 'pho-2', page: 'switch-sentinel', title: 'Review surveillance dashboard', description: 'Scan active cases, trends, and export paths.' },
       { id: 'pho-3', page: 'switch-sentinel', title: 'Triage alerts', description: 'Acknowledge public health alerts and route response.' },
     ],

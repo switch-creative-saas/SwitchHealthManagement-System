@@ -1,4 +1,4 @@
-/** Switch Sentinel — public health surveillance domain types */
+/** VitaLink Sentinel — public health surveillance domain types */
 
 export type DiseaseCategory = 'infectious' | 'ntd' | 'ncd';
 
