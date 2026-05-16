@@ -88,8 +88,8 @@
     --sentinel-glass-border: rgba(15, 23, 42, 0.08);
     --sentinel-glass-backdrop: blur(20px) saturate(180%);
 
-    /* Hero Gradient */
-    --sentinel-hero-gradient: linear-gradient(135deg, #4F46E5 0%, #7C3AED 50%, #2563EB 100%);
+    /* Hero Gradient - VitaLink Brand */
+    --sentinel-hero-gradient: linear-gradient(135deg, #0D6B7D 0%, #17A2B8 50%, #1DD1E1 100%);
     --sentinel-hero-overlay: rgba(15, 23, 42, 0.4);
 
     /* Badge/Chip Colors */
@@ -194,8 +194,8 @@
     --sentinel-glass-border: rgba(255, 255, 255, 0.08);
     --sentinel-glass-backdrop: blur(20px) saturate(180%);
 
-    /* Hero Gradient - Dark */
-    --sentinel-hero-gradient: linear-gradient(135deg, #1E1B8F 0%, #4F46E5 50%, #7C3AED 100%);
+    /* Hero Gradient - Dark VitaLink */
+    --sentinel-hero-gradient: linear-gradient(135deg, #0D6B7D 0%, #17A2B8 50%, #1DD1E1 100%);
     --sentinel-hero-overlay: rgba(0, 0, 0, 0.3);
 
     /* Badge/Chip Colors */

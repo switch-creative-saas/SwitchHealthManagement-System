@@ -3,6 +3,7 @@ import { LifeBuoy } from 'lucide-react';
 import { ResponsiveProvider } from '@/contexts/ResponsiveContext';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { SubscriptionProvider } from '@/contexts/SubscriptionContext';
+import { ThemeProvider } from '@/contexts/ThemeContext';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { Header } from '@/components/layout/Header';
 import { AppLayout } from '@/components/layout/AppLayout';
@@ -39,13 +40,15 @@ import { AppointmentProvider } from '@/contexts/AppointmentContext';
 
 function App() {
   return (
-    <ResponsiveProvider>
-      <AuthProvider>
-        <SubscriptionProvider>
-          <AppShell />
-        </SubscriptionProvider>
-      </AuthProvider>
-    </ResponsiveProvider>
+    <ThemeProvider>
+      <ResponsiveProvider>
+        <AuthProvider>
+          <SubscriptionProvider>
+            <AppShell />
+          </SubscriptionProvider>
+        </AuthProvider>
+      </ResponsiveProvider>
+    </ThemeProvider>
   );
 }
 
