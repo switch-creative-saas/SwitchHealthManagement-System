@@ -45,7 +45,7 @@ export function SwitchSentinelPage() {
     return (
       <div className={cn(classes.glass, 'p-8 text-center')}>
         <Shield className={cn('w-12 h-12 mx-auto mb-3', isDark ? 'text-amber-300' : 'text-amber-600')} />
-        <p className={cn('text-lg font-semibold', classes.textPrimary)}>Switch Sentinel</p>
+        <p className={cn('text-lg font-semibold', classes.textPrimary)}>VitaLink Sentinel</p>
         <p className={cn('text-sm mt-2 max-w-md mx-auto', classes.textSecondary)}>
           Your role is not provisioned for public health surveillance. Contact your tenant administrator for Public Health / Sentinel access.
         </p>

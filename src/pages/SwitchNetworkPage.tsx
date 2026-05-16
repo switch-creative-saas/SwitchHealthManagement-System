@@ -48,7 +48,7 @@ export function SwitchNetworkPage() {
     <div className="space-y-4 page-transition">
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Switch Health Hospital Network</h1>
+          <h1 className="text-2xl font-bold text-gray-900">VitaLink Hospital Network</h1>
           <p className="text-sm text-gray-500">National inter-hospital ecosystem for secure referrals, record portability, and specialist collaboration.</p>
         </div>
         <div className="rounded-xl px-3 py-2 bg-green-50 text-green-700 text-xs flex items-center gap-2">
@@ -102,7 +102,7 @@ export function SwitchNetworkPage() {
         <div className="rounded-3xl border border-white/70 bg-white/70 backdrop-blur-xl p-4 sm:p-6 shadow-soft space-y-4">
           <h3 className="font-semibold text-gray-900">Inter-Hospital Patient Referral</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <Input placeholder="Patient Switch ID" />
+            <Input placeholder="Patient VitaLink ID" />
             <select className="h-10 rounded-md border border-input px-3 text-sm" value={selectedHospital} onChange={(e) => setSelectedHospital(e.target.value)}>
               <option value="">Select specialist hospital</option>
               {hospitals.map((hospital) => <option key={hospital.id} value={hospital.id}>{hospital.name}</option>)}
@@ -164,7 +164,7 @@ export function SwitchNetworkPage() {
         <div className="rounded-3xl border border-white/70 bg-white/70 backdrop-blur-xl p-4 sm:p-6 shadow-soft space-y-4">
           <h3 className="font-semibold text-gray-900">Cross-Hospital Specialist Conference</h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-            <Input placeholder="Patient Switch ID" />
+            <Input placeholder="Patient VitaLink ID" />
             <Input placeholder="Invite specialist hospital ID" />
             <Input placeholder="Invite specialist staff ID/email" />
           </div>

@@ -382,7 +382,7 @@ export function PharmacyPage() {
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
           <div>
             <h1 className="text-2xl font-bold text-[#1E1B8F]">Pharmacy</h1>
-            <p className="text-sm text-gray-500 mt-1">Switch Health iOS-glass pharmacy workflow with EMR/Billing integrations.</p>
+            <p className="text-sm text-gray-500 mt-1">VitaLink iOS-glass pharmacy workflow with EMR/Billing integrations.</p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
             {isDoctor && (

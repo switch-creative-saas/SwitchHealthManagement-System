@@ -739,7 +739,7 @@ export function LaboratoryPage() {
           <div>
             <h1 className="text-xl md:text-2xl font-bold text-[#1E1B8F]">Laboratory</h1>
             <p className="text-xs md:text-sm text-gray-500 mt-0.5">
-              Switch Health · Orders, results, templates — role-aware workflow
+              VitaLink · Orders, results, templates — role-aware workflow
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-2">

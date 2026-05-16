@@ -51,7 +51,7 @@ function App() {
 
 function AppShell() {
   const { currentRole, userName, userEmail, setCurrentRole, setUserProfile, clearUserProfile } = useAuth();
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => Boolean(localStorage.getItem('switch-health-auth-session')));
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => Boolean(localStorage.getItem('vitalink-auth-session')));
   const [currentPage, setCurrentPage] = useState<PageType>('dashboard');
   const [guliaPanelOpen, setGuliaPanelOpen] = useState(false);
   const [emrSwitchId, setEmrSwitchId] = useState<string | null>(null);

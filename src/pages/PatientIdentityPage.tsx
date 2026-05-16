@@ -169,7 +169,7 @@ export function PatientIdentityPage() {
                 </div>
                 <h2 className="text-xl font-semibold text-gray-900">Tap NFC Card</h2>
                 <p className="text-sm text-gray-500 mt-1">
-                  Hold the patient's Switch Health card near the reader
+                  Hold the patient's VitaLink card near the reader
                 </p>
               </div>
 

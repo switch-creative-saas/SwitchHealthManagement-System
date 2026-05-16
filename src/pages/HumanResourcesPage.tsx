@@ -275,7 +275,7 @@ export function HumanResourcesPage() {
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
           <div>
             <h1 className="text-2xl font-bold text-[#1E1B8F]">Human Resources</h1>
-            <p className="text-sm text-gray-500 mt-1">Staff lifecycle, role governance, attendance, and performance across Switch Health facilities</p>
+            <p className="text-sm text-gray-500 mt-1">Staff lifecycle, role governance, attendance, and performance across VitaLink facilities</p>
           </div>
           <div className="flex flex-wrap gap-2">
             <Popover>

@@ -126,7 +126,7 @@ const initialStaff: StaffMember[] = [
 const initialFacilities: FacilityUnit[] = [
   {
     id: 'f1',
-    name: 'Switch Health - Lagos Central',
+    name: 'VitaLink - Lagos Central',
     code: 'SH-LAG-001',
     address: '123 Healthcare Avenue, Victoria Island',
     city: 'Lagos',
@@ -138,7 +138,7 @@ const initialFacilities: FacilityUnit[] = [
   },
   {
     id: 'f2',
-    name: 'Switch Health - Abuja Metro',
+    name: 'VitaLink - Abuja Metro',
     code: 'SH-ABJ-002',
     address: '22 Constitutional Drive, Garki',
     city: 'Abuja',
@@ -1100,7 +1100,7 @@ export function AdministrationPage() {
         <DialogContent className="glass-panel border-white/60 max-w-xl">
           <DialogHeader>
             <DialogTitle>Add Facility</DialogTitle>
-            <DialogDescription>Multi-hospital setup for Switch Health network scaling.</DialogDescription>
+            <DialogDescription>Multi-hospital setup for VitaLink network scaling.</DialogDescription>
           </DialogHeader>
           <div className="grid md:grid-cols-2 gap-3">
             <div><Label>Name</Label><Input value={facilityForm.name} onChange={(e) => setFacilityForm((prev) => ({ ...prev, name: e.target.value }))} /></div>

@@ -48,15 +48,15 @@ interface AuthGatewayPageProps {
 }
 
 function usersKey() {
-  return 'switch-health-auth-users';
+  return 'vitalink-auth-users';
 }
 
 function sessionKey() {
-  return 'switch-health-auth-session';
+  return 'vitalink-auth-session';
 }
 
 function onboardingKey(email: string) {
-  return `switch-health-onboarding-complete-${email.toLowerCase()}`;
+  return `vitalink-onboarding-complete-${email.toLowerCase()}`;
 }
 
 async function hashPassword(raw: string): Promise<string> {
@@ -86,10 +86,10 @@ function roleRedirect(role: UserRole): PageType {
   return 'dashboard';
 }
 
-function generateSwitchId(): string {
+function generateVitaLinkId(): string {
   const year = new Date().getFullYear();
   const serial = String(Math.floor(Math.random() * 999999)).padStart(6, '0');
-  return `SW-${year}-${serial}`;
+  return `VL-${year}-${serial}`;
 }
 
 export function AuthGatewayPage({ onAuthenticated, defaultTheme }: AuthGatewayPageProps) {
@@ -166,9 +166,9 @@ export function AuthGatewayPage({ onAuthenticated, defaultTheme }: AuthGatewayPa
       return;
     }
     const role = user.role ?? 'doctor';
-    const token = `sh.jwt.${btoa(`${user.email}:${Date.now()}`)}`;
+    const token = `vl.jwt.${btoa(`${user.email}:${Date.now()}`)}`;
     if (rememberMe) localStorage.setItem(sessionKey(), token);
-    window.dispatchEvent(new CustomEvent('switch-health:notify', { detail: { module: 'auth', type: 'login-success', message: 'User authenticated successfully' } }));
+    window.dispatchEvent(new CustomEvent('vitalink:notify', { detail: { module: 'auth', type: 'login-success', message: 'User authenticated successfully' } }));
     onAuthenticated({ role, name: user.fullName, email: user.email, redirectPage: roleRedirect(role) });
   };
 
@@ -302,7 +302,7 @@ export function AuthGatewayPage({ onAuthenticated, defaultTheme }: AuthGatewayPa
     setLoading(true);
     try {
       await new Promise((r) => setTimeout(r, 700));
-      const switchId = generateSwitchId();
+      const vitaLinkId = generateVitaLinkId();
       const users = getUsers();
       const updated = users.map((user) =>
         user.id === pendingUser.id
@@ -310,7 +310,7 @@ export function AuthGatewayPage({ onAuthenticated, defaultTheme }: AuthGatewayPa
               ...user,
               role: onboardingForm.role,
               onboardingComplete: true,
-              switchId,
+              switchId: vitaLinkId,
               facilityName: onboardingForm.facilityName,
               verifiedEmail: user.provider === 'google' ? true : emailVerified,
             }
@@ -321,7 +321,7 @@ export function AuthGatewayPage({ onAuthenticated, defaultTheme }: AuthGatewayPa
       const finalUser = updated.find((user) => user.id === pendingUser.id)!;
       setPendingUser(finalUser);
       setStage('welcome');
-      window.dispatchEvent(new CustomEvent('switch-health:notify', { detail: { module: 'auth', type: 'onboarding-complete', message: `${finalUser.fullName} completed onboarding` } }));
+      window.dispatchEvent(new CustomEvent('vitalink:notify', { detail: { module: 'auth', type: 'onboarding-complete', message: `${finalUser.fullName} completed onboarding` } }));
       toast.success('Onboarding completed');
     } finally {
       setLoading(false);
@@ -330,7 +330,7 @@ export function AuthGatewayPage({ onAuthenticated, defaultTheme }: AuthGatewayPa
 
   const enterWorkspace = () => {
     if (!pendingUser?.role) return;
-    const token = `sh.jwt.${btoa(`${pendingUser.email}:${Date.now()}`)}`;
+    const token = `vl.jwt.${btoa(`${pendingUser.email}:${Date.now()}`)}`;
     if (rememberMe) localStorage.setItem(sessionKey(), token);
     onAuthenticated({
       role: pendingUser.role,
@@ -344,7 +344,7 @@ export function AuthGatewayPage({ onAuthenticated, defaultTheme }: AuthGatewayPa
     <div className={`min-h-screen w-full auth-stage-transition ${currentTheme === 'dark' ? 'dark-theme' : 'light-theme'}`}>
       <div className="grid min-h-screen lg:grid-cols-2">
         <div className="relative hidden lg:flex overflow-hidden auth-visual-bg">
-          <div className="absolute inset-0 bg-gradient-to-br from-[#0B1F3A] via-[#1E1B8F] to-[#4C1D95] animate-auth-gradient" />
+          <div className="absolute inset-0 bg-gradient-to-br from-[#0D6B7D] via-[#17A2B8] to-[#1DD1A1] animate-auth-gradient" />
           <div className="absolute inset-0 auth-particles" />
           {floatingIcons.map((Icon, idx) => (
             <div key={idx} className="absolute text-white/25 animate-auth-float" style={{ top: `${10 + idx * 14}%`, left: `${8 + (idx % 3) * 28}%`, animationDelay: `${idx * 0.8}s` }}>
@@ -352,12 +352,12 @@ export function AuthGatewayPage({ onAuthenticated, defaultTheme }: AuthGatewayPa
             </div>
           ))}
           <div className="relative z-10 p-12 flex flex-col justify-between text-white">
-            <div className="text-xs uppercase tracking-[0.2em] text-white/70">Switch Health</div>
+            <div className="text-xs uppercase tracking-[0.2em] text-white/70">VitaLink</div>
             <div>
-              <h1 className="text-4xl font-bold leading-tight">Smart Healthcare Infrastructure for Africa</h1>
-              <p className="mt-4 text-white/80">Secure identity, clinical workflows, and intelligent operations for modern hospitals.</p>
+              <h1 className="text-4xl font-bold leading-tight">Connected Healthcare Starts Here</h1>
+              <p className="mt-4 text-white/80">Secure. Intelligent. Connected. Healthcare infrastructure for Africa.</p>
             </div>
-            <div className="text-sm text-white/70">Built with Gulia AI assistance</div>
+            <div className="text-sm text-white/70">Secure Medical Infrastructure</div>
           </div>
         </div>
 
@@ -366,15 +366,15 @@ export function AuthGatewayPage({ onAuthenticated, defaultTheme }: AuthGatewayPa
             <div className="flex items-center justify-between mb-5">
               <div>
                 <h2 className="text-2xl font-bold text-gray-900">
-                  {stage === 'login' && 'Welcome Back'}
-                  {stage === 'signup' && 'Create Account'}
-                  {stage === 'onboarding' && 'Complete Onboarding'}
-                  {stage === 'welcome' && 'Welcome Personalization'}
+                  {stage === 'login' && 'Welcome to VitaLink'}
+                  {stage === 'signup' && 'Join VitaLink'}
+                  {stage === 'onboarding' && 'Complete Setup'}
+                  {stage === 'welcome' && 'Ready to Go'}
                 </h2>
                 <p className="text-sm text-gray-500 mt-1">
                   {stage === 'welcome'
-                    ? `Welcome ${pendingUser?.fullName ?? 'User'} 👋 Let's set up your workspace...`
-                    : 'Secure access to the Switch Health platform'}
+                    ? `Welcome ${pendingUser?.fullName ?? 'User'} 👋 Your workspace is ready...`
+                    : 'Secure access to VitaLink'}
                 </p>
               </div>
               <button className="p-2 rounded-xl bg-white/60 border border-white/70" onClick={() => setCurrentTheme((t) => (t === 'dark' ? 'light' : 'dark'))}>
@@ -385,16 +385,16 @@ export function AuthGatewayPage({ onAuthenticated, defaultTheme }: AuthGatewayPa
             {stage === 'login' && (
               <div className="space-y-4 auth-form-enter">
                 <Field label="Email" value={loginForm.email} onChange={(v) => setLoginForm((f) => ({ ...f, email: v }))} type="email" placeholder="you@hospital.org" />
-                <Field label="Password" value={loginForm.password} onChange={(v) => setLoginForm((f) => ({ ...f, password: v }))} type="password" placeholder="••••••••" />
+                <Field label="Password" value={loginForm.password} onChange={(v) => setLoginForm((f) => ({ ...f, password: v }))} type="password" placeholder="••••••���•" />
                 <div className="flex items-center justify-between text-sm">
                   <label className="flex items-center gap-2">
                     <Checkbox checked={rememberMe} onCheckedChange={(checked) => setRememberMe(checked === true)} />
                     Remember me
                   </label>
-                  <button className="text-royal-600 hover:underline" onClick={() => toast.message('Password recovery flow placeholder')}>Forgot Password?</button>
+                  <button className="text-teal-600 hover:text-teal-700 hover:underline" onClick={() => toast.message('Password recovery flow placeholder')}>Forgot Password?</button>
                 </div>
                 {authError && <ErrorText text={authError} />}
-                <Button className="w-full bg-gradient-to-r from-royal-500 to-royal-700 text-white" onClick={handleLogin} disabled={loading}>
+                <Button className="w-full bg-gradient-to-r from-teal-600 to-cyan-600 text-white hover:shadow-lg hover:shadow-teal-500/50" onClick={handleLogin} disabled={loading}>
                   {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
                   Login
                 </Button>
@@ -402,7 +402,7 @@ export function AuthGatewayPage({ onAuthenticated, defaultTheme }: AuthGatewayPa
                   <GoogleIcon />
                   Continue with Google
                 </Button>
-                <p className="text-sm text-center text-gray-500">No account? <button className="text-royal-600 font-medium" onClick={() => { setAuthError(''); setStage('signup'); }}>Sign Up</button></p>
+                <p className="text-sm text-center text-gray-500">No account? <button className="text-teal-600 font-medium hover:text-teal-700" onClick={() => { setAuthError(''); setStage('signup'); }}>Sign Up</button></p>
               </div>
             )}
 
@@ -432,11 +432,11 @@ export function AuthGatewayPage({ onAuthenticated, defaultTheme }: AuthGatewayPa
                   <Input value={signupForm.country} onChange={(e) => setSignupForm((s) => ({ ...s, country: e.target.value }))} />
                 </div>
                 {authError && <ErrorText text={authError} />}
-                <Button className="w-full bg-gradient-to-r from-royal-500 to-royal-700 text-white" onClick={handleSignup} disabled={loading}>
+                <Button className="w-full bg-gradient-to-r from-teal-600 to-cyan-600 text-white hover:shadow-lg hover:shadow-teal-500/50" onClick={handleSignup} disabled={loading}>
                   {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
                   Create Account
                 </Button>
-                <p className="text-sm text-center text-gray-500">Have an account? <button className="text-royal-600 font-medium" onClick={() => { setAuthError(''); setStage('login'); }}>Login</button></p>
+                <p className="text-sm text-center text-gray-500">Have an account? <button className="text-teal-600 font-medium hover:text-teal-700" onClick={() => { setAuthError(''); setStage('login'); }}>Login</button></p>
               </div>
             )}
 
@@ -472,8 +472,8 @@ export function AuthGatewayPage({ onAuthenticated, defaultTheme }: AuthGatewayPa
                   </div>
                 </div>
                 <div className="flex gap-2 p-1 bg-gray-100 rounded-lg">
-                  <button className={`flex-1 px-3 py-2 text-sm rounded-md ${onboardingForm.facilityMode === 'create' ? 'bg-white text-royal-700' : 'text-gray-600'}`} onClick={() => setOnboardingForm((f) => ({ ...f, facilityMode: 'create' }))}>Create facility</button>
-                  <button className={`flex-1 px-3 py-2 text-sm rounded-md ${onboardingForm.facilityMode === 'join' ? 'bg-white text-royal-700' : 'text-gray-600'}`} onClick={() => setOnboardingForm((f) => ({ ...f, facilityMode: 'join' }))}>Join facility</button>
+                  <button className={`flex-1 px-3 py-2 text-sm rounded-md ${onboardingForm.facilityMode === 'create' ? 'bg-white text-teal-700' : 'text-gray-600'}`} onClick={() => setOnboardingForm((f) => ({ ...f, facilityMode: 'create' }))}>Create facility</button>
+                  <button className={`flex-1 px-3 py-2 text-sm rounded-md ${onboardingForm.facilityMode === 'join' ? 'bg-white text-teal-700' : 'text-gray-600'}`} onClick={() => setOnboardingForm((f) => ({ ...f, facilityMode: 'join' }))}>Join facility</button>
                 </div>
                 <Field label={onboardingForm.facilityMode === 'create' ? 'Facility Name' : 'Existing Facility'} value={onboardingForm.facilityName} onChange={(v) => setOnboardingForm((f) => ({ ...f, facilityName: v }))} />
                 {onboardingForm.facilityMode === 'join' && (
@@ -490,7 +490,7 @@ export function AuthGatewayPage({ onAuthenticated, defaultTheme }: AuthGatewayPa
                   </div>
                 )}
                 {authError && <ErrorText text={authError} />}
-                <Button className="w-full bg-gradient-to-r from-royal-500 to-royal-700 text-white" onClick={completeOnboarding} disabled={loading}>
+                <Button className="w-full bg-gradient-to-r from-teal-600 to-cyan-600 text-white hover:shadow-lg hover:shadow-teal-500/50" onClick={completeOnboarding} disabled={loading}>
                   {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
                   Complete Setup
                 </Button>
@@ -519,7 +519,7 @@ export function AuthGatewayPage({ onAuthenticated, defaultTheme }: AuthGatewayPa
                   <div className="rounded-lg border border-gray-100 p-2">Future-ready: NFC card login</div>
                   <div className="rounded-lg border border-gray-100 p-2">Future-ready: hospital federated identity</div>
                 </div>
-                <Button className="w-full bg-gradient-to-r from-royal-500 to-royal-700 text-white" onClick={enterWorkspace}>
+                <Button className="w-full bg-gradient-to-r from-teal-600 to-cyan-600 text-white hover:shadow-lg hover:shadow-teal-500/50" onClick={enterWorkspace}>
                   Enter Workspace
                   <ArrowRight className="w-4 h-4 ml-2" />
                 </Button>
@@ -553,7 +553,7 @@ function Field({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className="bg-white/80 focus:ring-2 focus:ring-royal-500/25 transition-all"
+        className="bg-white/80 focus:ring-2 focus:ring-teal-500/25 transition-all"
       />
     </div>
   );

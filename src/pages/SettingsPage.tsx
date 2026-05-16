@@ -101,7 +101,7 @@ export function SettingsPage({ onLogout, onDeleteAccount }: SettingsPageProps) {
     twoFactor: false,
   });
   const [facilityForm, setFacilityForm] = useState({
-    hospitalName: 'Switch Health - Lagos Central',
+    hospitalName: 'VitaLink - Lagos Central',
     address: '123 Healthcare Avenue, Victoria Island, Lagos',
     contactEmail: 'lagos@switchhealth.ng',
     contactPhone: '+234 1 234 5678',
@@ -298,7 +298,7 @@ export function SettingsPage({ onLogout, onDeleteAccount }: SettingsPageProps) {
         <div>
           <div className="text-xs text-gray-500 mb-1">Home / Settings / {tabs.find((t) => t.id === activeTab)?.label}</div>
           <h1 className="text-2xl font-bold text-gray-900">Settings</h1>
-          <p className="text-sm text-gray-500 mt-1">RBAC-controlled, SaaS-aware operational settings for Switch Health.</p>
+          <p className="text-sm text-gray-500 mt-1">RBAC-controlled, SaaS-aware operational settings for VitaLink.</p>
         </div>
         <div className="w-full lg:w-[380px]">
           <div className="relative">
@@ -773,7 +773,7 @@ export function SettingsPage({ onLogout, onDeleteAccount }: SettingsPageProps) {
                 <div className="space-y-3 text-sm">
                   <div className="flex justify-between py-2 border-b border-gray-100">
                     <span className="text-gray-500">Version</span>
-                    <span className="font-medium text-gray-900">Switch Health v2.0.0</span>
+                    <span className="font-medium text-gray-900">VitaLink v2.0.0</span>
                   </div>
                   <div className="flex justify-between py-2 border-b border-gray-100">
                     <span className="text-gray-500">Build</span>

@@ -58,7 +58,7 @@ interface KnowledgeArticle {
 }
 
 const knowledgeBase: KnowledgeArticle[] = [
-  { id: 'kb1', title: 'Getting Started with Switch Health', category: 'Getting Started', content: 'Set up facility, departments, and users from Administration.', helpful: 24, notHelpful: 3 },
+  { id: 'kb1', title: 'Getting Started with VitaLink', category: 'Getting Started', content: 'Set up facility, departments, and users from Administration.', helpful: 24, notHelpful: 3 },
   { id: 'kb2', title: 'Create an Invoice in Billing', category: 'Billing & Insurance', content: 'Go to Billing > Add Invoice > link patient > services > save.', helpful: 42, notHelpful: 2 },
   { id: 'kb3', title: 'Lab Result Workflow', category: 'Laboratory', content: 'Create order -> process sample -> validate -> publish results.', helpful: 31, notHelpful: 4 },
   { id: 'kb4', title: 'Pharmacy Dispensing Guide', category: 'Pharmacy', content: 'Validate prescription, dispense stock, sync billing.', helpful: 28, notHelpful: 5 },
@@ -248,7 +248,7 @@ export function HelpSupportPage() {
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold text-[#1E1B8F]">Help & Support</h1>
-          <p className="text-sm text-gray-500 mt-1">AI + Human support desk with diagnostics and knowledge base for Switch Health.</p>
+          <p className="text-sm text-gray-500 mt-1">AI + Human support desk with diagnostics and knowledge base for VitaLink.</p>
         </div>
         <div className="rounded-xl px-3 py-2 bg-green-50 text-green-700 text-xs flex items-center gap-2">
           <CheckCircle2 className="w-4 h-4" />
@@ -290,7 +290,7 @@ export function HelpSupportPage() {
                 <span className="px-2 py-1 rounded-full bg-royal-50 text-royal-700 border border-royal-100">Overall: {completionRate}%</span>
                 <span className="px-2 py-1 rounded-full bg-green-50 text-green-700 border border-green-100">Role Workflow: {roleCompletion}%</span>
                 <span className="px-2 py-1 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-100">Skill Level: {progress.skillLevel}</span>
-                {completionRate >= 90 && <span className="px-2 py-1 rounded-full bg-amber-50 text-amber-700 border border-amber-100">You are ready to use Switch Health</span>}
+                {completionRate >= 90 && <span className="px-2 py-1 rounded-full bg-amber-50 text-amber-700 border border-amber-100">You are ready to use VitaLink</span>}
               </div>
               <div className="mt-3 grid sm:grid-cols-2 gap-2">
                 <Button variant="outline" onClick={startIntroTour}>Start Intro Tour</Button>
@@ -539,7 +539,7 @@ export function HelpSupportPage() {
         <DialogContent className="glass-panel border-white/60 max-w-lg">
           <DialogHeader>
             <DialogTitle>Send Feedback</DialogTitle>
-            <DialogDescription>Share product feedback to improve Switch Health.</DialogDescription>
+            <DialogDescription>Share product feedback to improve VitaLink.</DialogDescription>
           </DialogHeader>
           <div className="space-y-3">
             <div><Label>Title</Label><Input value={feedbackForm.title} onChange={(e) => setFeedbackForm((prev) => ({ ...prev, title: e.target.value }))} /></div>

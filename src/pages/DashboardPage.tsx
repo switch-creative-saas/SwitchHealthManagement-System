@@ -578,7 +578,7 @@ export function DashboardPage() {
           <div className="flex-1">
             <div className="flex flex-wrap items-center gap-2 mb-2">
               <span className="px-3 py-1 rounded-full bg-white/20 text-xs font-medium backdrop-blur-sm">
-                Switch Health v2.0
+                VitaLink v2.0
               </span>
               <span className="px-3 py-1 rounded-full bg-[#D4AF37]/30 text-[#D4AF37] text-xs font-medium backdrop-blur-sm flex items-center gap-1">
                 <Sparkles className="w-3 h-3" />
