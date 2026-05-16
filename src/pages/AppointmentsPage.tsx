@@ -18,27 +18,13 @@ import { Input } from '@/components/ui/input';
 import { useAuth } from '@/contexts/AuthContext';
 import { useResponsive } from '@/contexts/ResponsiveContext';
 import { toast } from 'sonner';
-
-type AppointmentStatus = 'pending' | 'confirmed' | 'completed' | 'cancelled' | 'no-show';
-type AppointmentType = 'Consultation' | 'Follow-up' | 'Emergency';
-type Role = 'super-admin' | 'hospital-admin' | 'receptionist' | 'doctor' | 'nurse' | 'lab-scientist';
-
-interface Appointment {
-  id: string;
-  patient: string;
-  patientSwitchId: string;
-  doctor: string;
-  doctorId: string;
-  department: string;
-  date: string;
-  time: string;
-  duration: number;
-  type: AppointmentType;
-  status: AppointmentStatus;
-  notes: string;
-  phone: string;
-  labLinked: boolean;
-}
+import {
+  appointmentStatuses,
+  useAppointments,
+  type AppointmentRecord,
+  type AppointmentStatus,
+  type AppointmentType,
+} from '@/contexts/AppointmentContext';
 
 const timeSlots = Array.from({ length: 20 }, (_, i) => {
   const hour = Math.floor((i + 16) / 2);
@@ -46,47 +32,50 @@ const timeSlots = Array.from({ length: 20 }, (_, i) => {
   return `${String(hour).padStart(2, '0')}:${minute}`;
 });
 
-const doctors = [
-  { id: 'doc_1', name: 'Dr. Sarah Johnson', department: 'General Medicine', workingHours: ['08:00', '18:00'], breaks: ['12:00'], maxPerHour: 2 },
-  { id: 'doc_2', name: 'Dr. Michael Chen', department: 'Cardiology', workingHours: ['09:00', '17:00'], breaks: ['13:00'], maxPerHour: 2 },
-  { id: 'doc_3', name: 'Dr. Emily Davis', department: 'Pediatrics', workingHours: ['08:30', '16:30'], breaks: ['12:30'], maxPerHour: 3 },
-];
-
-const seedAppointments: Appointment[] = [
-  { id: 'a1', patient: 'Chioma Okonkwo', patientSwitchId: 'SW-2026-000261', doctor: 'Dr. Sarah Johnson', doctorId: 'doc_1', department: 'General Medicine', date: '2026-04-24', time: '09:00', duration: 30, type: 'Follow-up', status: 'pending', notes: 'Blood pressure review', phone: '+2348023456789', labLinked: false },
-  { id: 'a2', patient: 'Emmanuel Adeyemi', patientSwitchId: 'SW-2026-000262', doctor: 'Dr. Michael Chen', doctorId: 'doc_2', department: 'Cardiology', date: '2026-04-24', time: '09:30', duration: 45, type: 'Consultation', status: 'confirmed', notes: 'Chest pain follow-up', phone: '+2348034567890', labLinked: true },
-  { id: 'a3', patient: 'Fatima Abdullahi', patientSwitchId: 'SW-2026-000263', doctor: 'Dr. Sarah Johnson', doctorId: 'doc_1', department: 'General Medicine', date: '2026-04-24', time: '10:00', duration: 30, type: 'Emergency', status: 'pending', notes: 'High fever', phone: '+2348045678901', labLinked: true },
-  { id: 'a4', patient: 'Ngozi Eze', patientSwitchId: 'SW-2026-000264', doctor: 'Dr. Emily Davis', doctorId: 'doc_3', department: 'Pediatrics', date: '2026-04-24', time: '11:30', duration: 30, type: 'Consultation', status: 'completed', notes: 'Routine check', phone: '+2348067890123', labLinked: false },
-];
-
 const statusClass: Record<AppointmentStatus, string> = {
   confirmed: 'bg-green-100 text-green-700',
+  'checked-in': 'bg-blue-100 text-blue-700',
   pending: 'bg-amber-100 text-amber-700',
+  'in-consultation': 'bg-indigo-100 text-indigo-700',
   cancelled: 'bg-red-100 text-red-700',
   completed: 'bg-blue-100 text-blue-700',
   'no-show': 'bg-gray-100 text-gray-700',
+  rescheduled: 'bg-purple-100 text-purple-700',
+  emergency: 'bg-red-100 text-red-800',
+  'waiting-lab': 'bg-cyan-100 text-cyan-700',
+  admitted: 'bg-emerald-100 text-emerald-700',
 };
 
 export function AppointmentsPage() {
   const { currentRole, canEdit, userName } = useAuth();
   const { isMobile, isTablet } = useResponsive();
-  const role = currentRole as Role;
+  const {
+    appointments,
+    doctors,
+    appointmentTypes,
+    filters,
+    setFilters,
+    visibleAppointments: getVisibleAppointments,
+    createAppointment: createCoreAppointment,
+    updateStatus,
+    runAction,
+    canRunAction,
+    analytics,
+    pendingSyncCount,
+    isOnline,
+  } = useAppointments();
   const [loading, setLoading] = useState(true);
-  const [appointments, setAppointments] = useState<Appointment[]>(seedAppointments);
-  const [query, setQuery] = useState('');
-  const [activeDate, setActiveDate] = useState('2026-04-24');
   const [view, setView] = useState<'calendar' | 'list'>(isMobile ? 'list' : 'calendar');
   const [showNotifications, setShowNotifications] = useState(false);
   const [showNewModal, setShowNewModal] = useState(false);
-  const [selected, setSelected] = useState<Appointment | null>(null);
+  const [selected, setSelected] = useState<AppointmentRecord | null>(null);
   const [expandedMobile, setExpandedMobile] = useState<Record<string, boolean>>({});
-  const [doctorDecisionReason, setDoctorDecisionReason] = useState('');
   const [newForm, setNewForm] = useState({
     patient: '',
     patientSwitchId: '',
     doctorId: '',
     department: '',
-    date: activeDate,
+    date: filters.date,
     time: '09:00',
     type: 'Consultation' as AppointmentType,
     notes: '',
@@ -105,25 +94,18 @@ export function AppointmentsPage() {
     window.dispatchEvent(new CustomEvent('switch-health:training-action', { detail: { action: 'appointments:viewed' } }));
   }, []);
 
-  const visibleAppointments = useMemo(() => {
-    const base = appointments.filter((appointment) => {
-      if (role === 'doctor') return appointment.doctor === userName;
-      if (role === 'lab-scientist') return appointment.labLinked;
-      return true;
-    });
-    return base.filter((appointment) => {
-      if (appointment.date !== activeDate) return false;
-      const needle = query.toLowerCase();
-      return `${appointment.patient} ${appointment.doctor} ${appointment.type}`.toLowerCase().includes(needle);
-    });
-  }, [appointments, activeDate, query, role, userName]);
+  useEffect(() => {
+    setNewForm((prev) => ({ ...prev, date: filters.date }));
+  }, [filters.date]);
+
+  const visibleAppointments = useMemo(() => getVisibleAppointments(currentRole, userName), [getVisibleAppointments, currentRole, userName, appointments, filters]);
 
   const stats = useMemo(() => {
     const items = visibleAppointments;
     return [
       { label: 'Total Today', value: items.length, color: 'bg-royal-500' },
       { label: 'Completed', value: items.filter((a) => a.status === 'completed').length, color: 'bg-blue-500' },
-      { label: 'Pending', value: items.filter((a) => a.status === 'pending').length, color: 'bg-amber-500' },
+      { label: 'Active Queue', value: items.filter((a) => ['pending', 'confirmed', 'checked-in', 'waiting-lab', 'in-consultation'].includes(a.status)).length, color: 'bg-amber-500' },
       { label: 'No-show', value: items.filter((a) => a.status === 'no-show').length, color: 'bg-gray-500' },
       { label: 'Cancelled', value: items.filter((a) => a.status === 'cancelled').length, color: 'bg-red-500' },
     ];
@@ -138,9 +120,9 @@ export function AppointmentsPage() {
     [visibleAppointments],
   );
 
-  const canCreateAppointment = role === 'receptionist' || role === 'hospital-admin' || role === 'super-admin';
-  const canDoctorAction = role === 'doctor';
-  const canReschedule = canEdit('Appointments') || role === 'doctor' || role === 'receptionist';
+  const canCreateAppointment = currentRole === 'receptionist' || currentRole === 'hospital-admin' || currentRole === 'super-admin';
+  const canDoctorAction = currentRole === 'doctor' || currentRole === 'hospital-admin' || currentRole === 'super-admin';
+  const canReschedule = canEdit('Appointments') || currentRole === 'doctor' || currentRole === 'receptionist';
 
   const doctorAvailability = (doctorId: string, date: string, time: string) => {
     const doctor = doctors.find((item) => item.id === doctorId);
@@ -170,35 +152,41 @@ export function AppointmentsPage() {
       return;
     }
     const doctor = doctors.find((item) => item.id === newForm.doctorId);
-    const next: Appointment = {
-      id: crypto.randomUUID(),
+    createCoreAppointment({
       patient: newForm.patient,
       patientSwitchId: newForm.patientSwitchId,
+      nfcId: `NFC-${newForm.patientSwitchId.slice(-6) || 'NEW'}`,
+      patientAvatar: newForm.patient.split(' ').map((part) => part[0]).slice(0, 2).join('').toUpperCase() || 'PT',
       doctor: doctor?.name ?? '',
       doctorId: newForm.doctorId,
+      doctorAvatar: doctor?.avatar ?? 'DR',
       department: newForm.department,
       date: newForm.date,
       time: newForm.time,
       duration: 30,
       type: newForm.type,
+      priority: newForm.type === 'Emergency' ? 'emergency' : 'routine',
+      insuranceType: 'self-pay',
       status: 'pending',
-      notes: newForm.notes,
+      visitReason: newForm.notes || 'Scheduled appointment',
+      history: ['Created from Appointments module'],
+      checkInStatus: 'not-arrived',
+      insuranceStatus: 'self-pay',
+      outstandingBalance: 0,
+      lastVitals: 'Vitals not recorded',
+      clinicalAlerts: [],
+      emergencyFlags: newForm.type === 'Emergency' ? ['Emergency booking'] : [],
+      allergies: ['Not recorded'],
       phone: '+2348000000000',
       labLinked: false,
-    };
-    setAppointments((prev) => [...prev, next]);
+      prescriptionReady: false,
+      waitMinutes: 0,
+      consultationMinutes: 0,
+    });
     setShowNewModal(false);
-    toast.success('Appointment created. Doctor has been notified.');
     window.dispatchEvent(new CustomEvent('switch-health:training-action', { detail: { action: 'appointments:created' } }));
     window.dispatchEvent(new CustomEvent('switch-health:training-action', { detail: { action: 'appointments:doctor-assigned' } }));
     window.dispatchEvent(new CustomEvent('switch-health:training-action', { detail: { action: 'appointments:confirmation-sent' } }));
-  };
-
-  const mutateStatus = (id: string, status: AppointmentStatus, reason?: string) => {
-    setAppointments((prev) => prev.map((appointment) => (appointment.id === id ? { ...appointment, status, notes: reason ? `${appointment.notes} | ${reason}` : appointment.notes } : appointment)));
-    if (status === 'confirmed') toast.success('Appointment accepted. Receptionist notified.');
-    if (status === 'cancelled') toast.error('Appointment cancelled. Receptionist notified.');
-    if (status === 'completed') toast.success('Appointment marked completed.');
   };
 
   const openPatient = (switchId: string) => {
@@ -211,9 +199,9 @@ export function AppointmentsPage() {
   };
 
   const changeDateBy = (days: number) => {
-    const base = new Date(activeDate);
+    const base = new Date(filters.date);
     base.setDate(base.getDate() + days);
-    setActiveDate(base.toISOString().slice(0, 10));
+    setFilters({ date: base.toISOString().slice(0, 10) });
   };
 
   const renderCalendarCards = () =>
@@ -246,7 +234,7 @@ export function AppointmentsPage() {
           <div className="flex items-center gap-2">
             <div className="relative">
               <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-              <Input className="pl-9 w-56" placeholder="Search patient, doctor, type" value={query} onChange={(e) => setQuery(e.target.value)} />
+              <Input className="pl-9 w-56" placeholder="Search patient, doctor, type" value={filters.query} onChange={(e) => setFilters({ query: e.target.value })} />
             </div>
             <div className="relative">
               <Button variant="outline" size="icon" onClick={() => setShowNotifications((v) => !v)}>
@@ -281,6 +269,28 @@ export function AppointmentsPage() {
         </div>
       </div>
 
+      <div className="rounded-3xl border border-white/70 bg-white/75 backdrop-blur-xl p-3 grid grid-cols-1 md:grid-cols-4 gap-2">
+        <select className="h-10 rounded-md border border-input px-3 text-sm" value={filters.doctorId} onChange={(e) => setFilters({ doctorId: e.target.value })}>
+          <option value="all">All doctors</option>
+          {doctors.map((doctor) => <option key={doctor.id} value={doctor.id}>{doctor.name}</option>)}
+        </select>
+        <select className="h-10 rounded-md border border-input px-3 text-sm" value={filters.department} onChange={(e) => setFilters({ department: e.target.value })}>
+          <option value="all">All departments</option>
+          {[...new Set(doctors.map((doctor) => doctor.department))].map((department) => <option key={department} value={department}>{department}</option>)}
+        </select>
+        <select className="h-10 rounded-md border border-input px-3 text-sm" value={filters.type} onChange={(e) => setFilters({ type: e.target.value as AppointmentType | 'all' })}>
+          <option value="all">All appointment types</option>
+          {appointmentTypes.map((type) => <option key={type} value={type}>{type}</option>)}
+        </select>
+        <select className="h-10 rounded-md border border-input px-3 text-sm" value={filters.priority} onChange={(e) => setFilters({ priority: e.target.value as typeof filters.priority })}>
+          <option value="all">All priorities</option>
+          <option value="routine">Routine</option>
+          <option value="urgent">Urgent</option>
+          <option value="stat">Stat</option>
+          <option value="emergency">Emergency</option>
+        </select>
+      </div>
+
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-2">
         {stats.map((stat) => (
           <div key={stat.label} className="rounded-2xl border border-white/70 bg-white/75 backdrop-blur-xl p-3">
@@ -293,14 +303,34 @@ export function AppointmentsPage() {
         ))}
       </div>
 
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-2">
+        {[
+          { label: 'Avg wait', value: `${analytics.averageWait}m` },
+          { label: 'No-show rate', value: `${analytics.noShowRate}%` },
+          { label: 'Avg consult', value: `${analytics.averageConsultation}m` },
+          { label: 'Throughput', value: analytics.throughput },
+          { label: 'Peak hour', value: analytics.peakHour },
+        ].map((metric) => (
+          <div key={metric.label} className="rounded-2xl border border-white/70 bg-white/60 backdrop-blur-xl p-3">
+            <p className="text-xs text-gray-500">{metric.label}</p>
+            <p className="text-lg font-bold text-gray-900 mt-1">{metric.value}</p>
+          </div>
+        ))}
+      </div>
+
       <div className="rounded-3xl border border-white/70 bg-white/75 backdrop-blur-xl overflow-hidden">
         <div className="p-3 border-b border-gray-100 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <button className="p-2 rounded-lg hover:bg-gray-100" onClick={() => changeDateBy(-1)}><ChevronLeft className="w-4 h-4" /></button>
-            <p className="font-semibold text-gray-900">{new Date(activeDate).toLocaleDateString('en-US', { weekday: 'short', month: 'long', day: 'numeric' })}</p>
+            <p className="font-semibold text-gray-900">{new Date(filters.date).toLocaleDateString('en-US', { weekday: 'short', month: 'long', day: 'numeric' })}</p>
             <button className="p-2 rounded-lg hover:bg-gray-100" onClick={() => changeDateBy(1)}><ChevronRight className="w-4 h-4" /></button>
           </div>
-          <Button variant="outline" size="sm" onClick={() => setActiveDate(new Date().toISOString().slice(0, 10))}>Today</Button>
+          <div className="flex items-center gap-2">
+            <span className={cn('text-xs px-2 py-1 rounded-full', isOnline ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700')}>
+              {isOnline ? 'Live sync' : `${pendingSyncCount} offline updates`}
+            </span>
+            <Button variant="outline" size="sm" onClick={() => setFilters({ date: new Date().toISOString().slice(0, 10) })}>Today</Button>
+          </div>
           </div>
 
         {loading ? (
@@ -334,9 +364,9 @@ export function AppointmentsPage() {
                   <div className="overflow-hidden space-y-2">
                     <p className="text-sm text-gray-600">{appointment.type} • {appointment.department}</p>
                     <div className="flex gap-2 flex-wrap">
-                      <Button size="sm" variant="outline" onClick={() => mutateStatus(appointment.id, 'confirmed')}>Accept</Button>
-                      <Button size="sm" variant="outline" onClick={() => mutateStatus(appointment.id, 'pending', 'Reschedule requested')}>Reschedule</Button>
-                      <Button size="sm" variant="outline" onClick={() => mutateStatus(appointment.id, 'cancelled')}>Cancel</Button>
+                      <Button size="sm" variant="outline" onClick={() => updateStatus(appointment.id, 'confirmed', 'Accepted from schedule')}>Accept</Button>
+                      <Button size="sm" variant="outline" onClick={() => runAction(appointment.id, 'reschedule')}>Reschedule</Button>
+                      <Button size="sm" variant="outline" onClick={() => runAction(appointment.id, 'cancel')}>Cancel</Button>
                       <Button size="sm" variant="outline" onClick={() => setSelected(appointment)}>Open</Button>
                     </div>
                   </div>
@@ -375,9 +405,7 @@ export function AppointmentsPage() {
                 {timeSlots.map((slot) => <option key={slot}>{slot}</option>)}
               </select>
               <select className="h-10 rounded-md border border-input px-3 text-sm" value={newForm.type} onChange={(e) => setNewForm((p) => ({ ...p, type: e.target.value as AppointmentType }))}>
-                <option>Consultation</option>
-                <option>Follow-up</option>
-                <option>Emergency</option>
+                {appointmentTypes.map((type) => <option key={type}>{type}</option>)}
               </select>
               <Input placeholder="Notes" value={newForm.notes} onChange={(e) => setNewForm((p) => ({ ...p, notes: e.target.value }))} />
             </div>
@@ -403,37 +431,33 @@ export function AppointmentsPage() {
               <p><span className="text-gray-500">Patient:</span> <button className="text-royal-700 hover:underline" onClick={() => openPatient(selected.patientSwitchId)}>{selected.patient}</button></p>
               <p><span className="text-gray-500">Doctor:</span> <button className="text-royal-700 hover:underline" onClick={openDoctor}>{selected.doctor}</button></p>
               <p><span className="text-gray-500">Status:</span> <span className={cn('px-2 py-0.5 rounded-full text-xs ml-1', statusClass[selected.status])}>{selected.status}</span></p>
-              <p><span className="text-gray-500">Notes:</span> {selected.notes}</p>
+              <p><span className="text-gray-500">Visit reason:</span> {selected.visitReason}</p>
+              <p><span className="text-gray-500">Queue:</span> {selected.queueNumber} • position {selected.queuePosition}</p>
             </div>
             <div className="flex flex-wrap gap-2">
-              <Button size="sm" variant="outline" onClick={() => mutateStatus(selected.id, 'confirmed')}>Accept</Button>
-              <Button size="sm" variant="outline" disabled={!canReschedule} onClick={() => mutateStatus(selected.id, 'pending', 'Reschedule requested')}>Reschedule</Button>
-              <Button size="sm" variant="outline" onClick={() => mutateStatus(selected.id, 'cancelled')}>Cancel</Button>
-              <Button size="sm" variant="outline" disabled={!canDoctorAction} onClick={() => mutateStatus(selected.id, 'completed')}>Complete</Button>
+              <Button size="sm" variant="outline" onClick={() => updateStatus(selected.id, 'confirmed', 'Accepted from schedule drawer')}>Accept</Button>
+              <Button size="sm" variant="outline" disabled={!canReschedule} onClick={() => runAction(selected.id, 'reschedule')}>Reschedule</Button>
+              <Button size="sm" variant="outline" onClick={() => runAction(selected.id, 'cancel')}>Cancel</Button>
+              <Button size="sm" variant="outline" disabled={!canDoctorAction} onClick={() => updateStatus(selected.id, 'completed', 'Consultation completed')}>Complete</Button>
+              <Button size="sm" variant="outline" disabled={!canRunAction(currentRole, 'check-in', selected)} onClick={() => runAction(selected.id, 'check-in')}>Check in</Button>
+              <Button size="sm" variant="outline" disabled={!canRunAction(currentRole, 'generate-invoice', selected)} onClick={() => runAction(selected.id, 'generate-invoice')}>Invoice</Button>
                       </div>
             {canDoctorAction && selected.status === 'pending' && (
               <div className="rounded-xl border border-gray-100 p-3 space-y-2">
                 <p className="text-xs text-gray-500">Doctor Pending Request Action</p>
-                <Input placeholder="Reject reason (required for reject)" value={doctorDecisionReason} onChange={(e) => setDoctorDecisionReason(e.target.value)} />
                 <div className="flex gap-2">
-                  <Button size="sm" onClick={() => mutateStatus(selected.id, 'confirmed')}>ACCEPT</Button>
-                  <Button size="sm" variant="outline" onClick={() => mutateStatus(selected.id, 'pending', 'Doctor proposed reschedule')}>RESCHEDULE</Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => {
-                      if (!doctorDecisionReason.trim()) {
-                        toast.error('Reject reason is required.');
-                        return;
-                      }
-                      mutateStatus(selected.id, 'cancelled', doctorDecisionReason);
-                    }}
-                  >
-                    REJECT
-                  </Button>
+                  <Button size="sm" onClick={() => updateStatus(selected.id, 'confirmed', 'Doctor accepted')}>ACCEPT</Button>
+                  <Button size="sm" variant="outline" onClick={() => runAction(selected.id, 'reschedule')}>RESCHEDULE</Button>
+                  <Button size="sm" variant="outline" onClick={() => runAction(selected.id, 'cancel')}>REJECT</Button>
                       </div>
                     </div>
             )}
+            <div className="rounded-xl border border-gray-100 p-3">
+              <p className="text-xs text-gray-500 mb-2">Status workflow</p>
+              <select className="w-full h-10 rounded-md border border-input px-3 text-sm" value={selected.status} onChange={(event) => updateStatus(selected.id, event.target.value as AppointmentStatus, 'Changed in full appointments module')}>
+                {appointmentStatuses.map((status) => <option key={status} value={status}>{status}</option>)}
+              </select>
+            </div>
             <div className="rounded-xl bg-blue-50 p-3 text-xs text-blue-700">
               Notifications:
               <ul className="list-disc ml-4 mt-1">
@@ -443,7 +467,7 @@ export function AppointmentsPage() {
               </ul>
                     </div>
             <div className="flex items-center justify-between text-xs text-gray-500">
-              <span>Role: {role}</span>
+              <span>Role: {currentRole}</span>
               <button className="p-1.5 rounded-lg hover:bg-gray-100"><MoreHorizontal className="w-4 h-4" /></button>
                     </div>
           </aside>

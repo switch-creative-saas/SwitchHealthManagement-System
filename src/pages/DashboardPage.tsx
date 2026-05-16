@@ -18,6 +18,25 @@ import {
   ChevronRight,
   UserPlus,
   CalendarPlus,
+  Stethoscope,
+  CalendarClock,
+  Ban,
+  MessageSquare,
+  FileText,
+  Video,
+  NotebookPen,
+  ClipboardList,
+  Printer,
+  Phone,
+  Mail,
+  Wallet,
+  HeartPulse,
+  WifiOff,
+  UserCheck,
+  Timer,
+  Siren,
+  BadgeDollarSign,
+  Filter,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -26,6 +45,13 @@ import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 import { PatientOnboardingWizard } from '@/components/patients/PatientOnboardingWizard';
+import {
+  appointmentStatuses,
+  useAppointments,
+  type AppointmentAction,
+  type AppointmentRecord,
+  type AppointmentStatus,
+} from '@/contexts/AppointmentContext';
 
 interface StatCardProps {
   title: string;
@@ -409,12 +435,55 @@ function StatCardSkeleton() {
   );
 }
 
+const statusStyles: Record<AppointmentStatus, string> = {
+  confirmed: 'bg-green-100 text-green-700 border-green-200',
+  'checked-in': 'bg-blue-100 text-blue-700 border-blue-200',
+  pending: 'bg-amber-100 text-amber-700 border-amber-200',
+  'in-consultation': 'bg-indigo-100 text-indigo-700 border-indigo-200',
+  completed: 'bg-slate-100 text-slate-700 border-slate-200',
+  cancelled: 'bg-red-100 text-red-700 border-red-200',
+  'no-show': 'bg-gray-100 text-gray-700 border-gray-200',
+  rescheduled: 'bg-purple-100 text-purple-700 border-purple-200',
+  emergency: 'bg-red-100 text-red-800 border-red-300',
+  'waiting-lab': 'bg-cyan-100 text-cyan-700 border-cyan-200',
+  admitted: 'bg-emerald-100 text-emerald-700 border-emerald-200',
+};
+
+const actionConfig: Array<{ id: AppointmentAction; label: string; icon: React.ElementType }> = [
+  { id: 'check-in', label: 'Check-In Patient', icon: UserCheck },
+  { id: 'start-consultation', label: 'Start Consultation', icon: Stethoscope },
+  { id: 'reschedule', label: 'Reschedule', icon: CalendarClock },
+  { id: 'cancel', label: 'Cancel Appointment', icon: Ban },
+  { id: 'no-show', label: 'Mark as No Show', icon: AlertCircle },
+  { id: 'send-reminder', label: 'Send Reminder', icon: MessageSquare },
+  { id: 'view-record', label: 'View Patient Record', icon: FileText },
+  { id: 'generate-invoice', label: 'Generate Invoice', icon: BadgeDollarSign },
+  { id: 'join-telemedicine', label: 'Join Telemedicine', icon: Video },
+  { id: 'add-notes', label: 'Add Clinical Notes', icon: NotebookPen },
+  { id: 'triage', label: 'Queue for Triage', icon: ClipboardList },
+  { id: 'print-slip', label: 'Print Queue Slip', icon: Printer },
+];
+
 export function DashboardPage() {
-  const { canCreate, userName } = useAuth();
+  const { canCreate, canView, currentRole, userName } = useAuth();
+  const {
+    doctors,
+    filters,
+    setFilters,
+    visibleAppointments,
+    updateStatus,
+    runAction,
+    canOpenAppointmentsHub,
+    canRunAction,
+    preserveDashboardContext,
+    pendingSyncCount,
+    isOnline,
+  } = useAppointments();
   const [showNewPatient, setShowNewPatient] = useState(false);
   const [showBookAppointment, setShowBookAppointment] = useState(false);
   const [showOrderLab, setShowOrderLab] = useState(false);
   const [showDispense, setShowDispense] = useState(false);
+  const [selectedAppointment, setSelectedAppointment] = useState<AppointmentRecord | null>(null);
   const [loading, setLoading] = useState(true);
 
   // Simulate loading
@@ -454,18 +523,16 @@ export function DashboardPage() {
     },
   ].filter(action => action.permission);
 
+  const dashboardAppointments = visibleAppointments(currentRole, userName);
+  const upcomingAppointments = dashboardAppointments.slice(0, 5);
+  const completedToday = dashboardAppointments.filter((appointment) => appointment.status === 'completed').length;
+  const pendingToday = dashboardAppointments.filter((appointment) => ['pending', 'confirmed', 'checked-in', 'waiting-lab'].includes(appointment.status)).length;
+
   const stats = [
     { title: 'Total Patients', value: '2,847', change: 12, changeType: 'increase' as const, icon: Users, color: 'bg-gradient-to-br from-blue-500 to-blue-700', subtitle: '+156 this month' },
-    { title: "Today's Appointments", value: '24', change: 8, changeType: 'increase' as const, icon: CalendarCheck, color: 'bg-gradient-to-br from-green-500 to-green-700', subtitle: '8 completed, 16 pending' },
+    { title: "Today's Appointments", value: dashboardAppointments.length, change: 8, changeType: 'increase' as const, icon: CalendarCheck, color: 'bg-gradient-to-br from-green-500 to-green-700', subtitle: `${completedToday} completed, ${pendingToday} active` },
     { title: 'Pending Lab Results', value: '18', change: -5, changeType: 'decrease' as const, icon: FlaskConical, color: 'bg-gradient-to-br from-purple-500 to-purple-700', subtitle: '3 urgent, 15 routine' },
     { title: 'Revenue Today', value: '₦1,245,000', change: 23, changeType: 'increase' as const, icon: CreditCard, color: 'bg-gradient-to-br from-amber-500 to-amber-700', subtitle: '+₦234,000 vs yesterday' },
-  ];
-
-  const upcomingAppointments = [
-    { id: 1, patient: 'Chioma Okonkwo', time: '09:00 AM', type: 'Follow-up', department: 'General', status: 'confirmed', doctor: 'Dr. Sarah Johnson' },
-    { id: 2, patient: 'Emmanuel Adeyemi', time: '09:30 AM', type: 'Consultation', department: 'Cardiology', status: 'checked-in', doctor: 'Dr. Michael Chen' },
-    { id: 3, patient: 'Fatima Abdullahi', time: '10:00 AM', type: 'Lab Review', department: 'General', status: 'pending', doctor: 'Dr. Sarah Johnson' },
-    { id: 4, patient: 'Oluwaseun Balogun', time: '10:30 AM', type: 'Vaccination', department: 'Pediatrics', status: 'confirmed', doctor: 'Dr. Emily Davis' },
   ];
 
   const recentActivity = [
@@ -476,7 +543,23 @@ export function DashboardPage() {
     { id: 5, type: 'billing', message: 'Invoice #INV-2026-001 paid', time: '2 hours ago', icon: CreditCard, color: 'bg-amber-500' },
   ];
 
-  const handleAppointmentClick = (appointment: typeof upcomingAppointments[0]) => {
+  const navigateToAppointments = () => {
+    if (!canOpenAppointmentsHub(currentRole) || !canView('Appointments')) {
+      toast.error('RBAC: Your role cannot open the full appointments module.');
+      return;
+    }
+    preserveDashboardContext({
+      date: filters.date,
+      doctorId: filters.doctorId,
+      department: filters.department,
+      status: filters.status,
+      query: filters.query,
+    });
+    window.dispatchEvent(new CustomEvent('app:navigate', { detail: { page: 'appointments' } }));
+  };
+
+  const handleAppointmentClick = (appointment: AppointmentRecord) => {
+    setSelectedAppointment(appointment);
     toast.info(`Opening appointment: ${appointment.patient}`, {
       description: `${appointment.type} at ${appointment.time} with ${appointment.doctor}`,
     });
@@ -563,46 +646,107 @@ export function DashboardPage() {
 
           {/* Upcoming Appointments */}
           <div className="bg-white/70 backdrop-blur-xl border border-white/60 rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-soft">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-base sm:text-lg font-semibold text-gray-900">Upcoming Appointments</h2>
+            <div className="flex flex-col gap-3 mb-4">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <h2 className="text-base sm:text-lg font-semibold text-gray-900">Upcoming Appointments</h2>
+                  <p className="text-xs text-gray-500 flex items-center gap-2 mt-0.5">
+                    {isOnline ? <CheckCircle2 className="w-3.5 h-3.5 text-green-500" /> : <WifiOff className="w-3.5 h-3.5 text-amber-500" />}
+                    {isOnline ? 'Live scheduling feed' : `Offline mode - ${pendingSyncCount} queued updates`}
+                  </p>
+                </div>
               <button 
-                onClick={() => toast.info('Navigating to Appointments...')}
+                  onClick={navigateToAppointments}
                 className="text-xs sm:text-sm text-[#1E1B8F] hover:text-[#1E1B8F]/80 font-medium flex items-center gap-1"
               >
                 View All <ArrowRight className="w-4 h-4" />
               </button>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-[1fr_auto_auto] gap-2">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <Input
+                    value={filters.query}
+                    onChange={(event) => setFilters({ query: event.target.value })}
+                    placeholder="Search patient, doctor, type..."
+                    className="pl-9 h-9 bg-white/80"
+                  />
+                </div>
+                <select
+                  value={filters.doctorId}
+                  onChange={(event) => setFilters({ doctorId: event.target.value })}
+                  className="h-9 rounded-lg border border-gray-200 bg-white/80 px-3 text-xs text-gray-700"
+                  aria-label="Filter appointments by doctor"
+                >
+                  <option value="all">All doctors</option>
+                  {doctors.map((doctor) => (
+                    <option key={doctor.id} value={doctor.id}>{doctor.name}</option>
+                  ))}
+                </select>
+                <select
+                  value={filters.status}
+                  onChange={(event) => setFilters({ status: event.target.value as AppointmentStatus | 'all' })}
+                  className="h-9 rounded-lg border border-gray-200 bg-white/80 px-3 text-xs text-gray-700"
+                  aria-label="Filter appointments by status"
+                >
+                  <option value="all">All statuses</option>
+                  {appointmentStatuses.map((status) => (
+                    <option key={status} value={status}>{status}</option>
+                  ))}
+                </select>
+              </div>
             </div>
             <div className="space-y-2 sm:space-y-3">
               {upcomingAppointments.map((apt) => (
-                <div 
+                <button 
                   key={apt.id} 
                   onClick={() => handleAppointmentClick(apt)}
-                  className="flex items-center gap-3 sm:gap-4 p-3 sm:p-4 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer group"
+                  className={cn(
+                    'w-full flex items-center gap-3 sm:gap-4 p-3 sm:p-4 rounded-xl border text-left transition-all duration-200 cursor-pointer group active:scale-[0.99]',
+                    apt.priority === 'emergency' || apt.status === 'emergency'
+                      ? 'bg-red-50 border-red-200 hover:bg-red-100'
+                      : apt.waitMinutes >= 30
+                        ? 'bg-amber-50 border-amber-200 hover:bg-amber-100'
+                        : 'bg-gray-50 border-gray-100 hover:bg-white hover:border-[#1E1B8F]/20 hover:shadow-md',
+                  )}
                 >
-                  <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-[#1E1B8F]/10 flex items-center justify-center flex-shrink-0">
-                    <span className="text-xs sm:text-sm font-bold text-[#1E1B8F]">{apt.time.split(' ')[0]}</span>
+                  <div className="w-12 h-12 rounded-xl bg-[#1E1B8F]/10 flex flex-col items-center justify-center flex-shrink-0">
+                    <span className="text-xs sm:text-sm font-bold text-[#1E1B8F]">{apt.time}</span>
+                    <span className="text-[10px] text-gray-500">{apt.queueNumber}</span>
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-gray-900 text-sm sm:text-base truncate">{apt.patient}</h3>
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span className="w-7 h-7 rounded-full bg-white border border-gray-200 text-[11px] font-bold text-[#1E1B8F] flex items-center justify-center flex-shrink-0">{apt.patientAvatar}</span>
+                      <h3 className="font-semibold text-gray-900 text-sm sm:text-base truncate">{apt.patient}</h3>
+                      {apt.time <= new Date().toTimeString().slice(0, 5) && !['completed', 'cancelled', 'no-show'].includes(apt.status) && (
+                        <span className="hidden sm:inline-flex px-2 py-0.5 rounded-full bg-red-100 text-red-700 text-[10px] font-semibold">overdue</span>
+                      )}
+                    </div>
                     <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs sm:text-sm text-gray-500">
                       <span>{apt.type}</span>
                       <span className="hidden sm:inline">•</span>
                       <span className="hidden sm:inline">{apt.department}</span>
                       <span>•</span>
                       <span className="text-gray-400">{apt.doctor}</span>
+                      <span className="inline-flex items-center gap-1 text-gray-400">
+                        <Timer className="w-3 h-3" />
+                        {apt.waitMinutes}m wait
+                      </span>
                     </div>
                   </div>
-                  <span className={cn(
-                    "px-2 sm:px-3 py-1 rounded-full text-[10px] sm:text-xs font-medium flex-shrink-0",
-                    apt.status === 'confirmed' ? "bg-green-100 text-green-700" :
-                    apt.status === 'checked-in' ? "bg-blue-100 text-blue-700" :
-                    "bg-amber-100 text-amber-700"
-                  )}>
+                  {apt.emergencyFlags.length > 0 && <Siren className="w-4 h-4 text-red-500 flex-shrink-0" />}
+                  <span className={cn("px-2 sm:px-3 py-1 rounded-full border text-[10px] sm:text-xs font-medium flex-shrink-0", statusStyles[apt.status])}>
                     {apt.status}
                   </span>
                   <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />
-                </div>
+                </button>
               ))}
+              {upcomingAppointments.length === 0 && (
+                <div className="rounded-xl border border-dashed border-gray-200 bg-gray-50 p-4 text-sm text-gray-500">
+                  No appointments match the current dashboard filters.
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -698,6 +842,160 @@ export function DashboardPage() {
       <BookAppointmentModal open={showBookAppointment} onClose={() => setShowBookAppointment(false)} />
       <OrderLabModal open={showOrderLab} onClose={() => setShowOrderLab(false)} />
       <DispenseModal open={showDispense} onClose={() => setShowDispense(false)} />
+      <Dialog open={Boolean(selectedAppointment)} onOpenChange={(open) => !open && setSelectedAppointment(null)}>
+        <DialogContent className="max-h-[92vh] overflow-y-auto bg-white/95 backdrop-blur-xl sm:max-w-4xl p-0">
+          {selectedAppointment && (
+            <div className="grid grid-cols-1 lg:grid-cols-[1.1fr_0.9fr]">
+              <div className="p-4 sm:p-6 space-y-4 border-b lg:border-b-0 lg:border-r border-gray-100">
+                <DialogHeader>
+                  <DialogTitle className="text-[#1E1B8F] flex items-center gap-2">
+                    <CalendarCheck className="w-5 h-5" />
+                    Quick Appointment Hub
+                  </DialogTitle>
+                </DialogHeader>
+
+                <div className="rounded-2xl border border-gray-100 bg-gray-50 p-4">
+                  <div className="flex items-start gap-3">
+                    <div className="w-12 h-12 rounded-2xl bg-[#1E1B8F] text-white flex items-center justify-center font-bold">
+                      {selectedAppointment.patientAvatar}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <h3 className="font-semibold text-gray-900 truncate">{selectedAppointment.patient}</h3>
+                      <p className="text-xs text-gray-500">{selectedAppointment.patientSwitchId} • {selectedAppointment.nfcId}</p>
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        <span className={cn('px-2 py-1 rounded-full border text-xs font-medium', statusStyles[selectedAppointment.status])}>{selectedAppointment.status}</span>
+                        <span className="px-2 py-1 rounded-full bg-white border border-gray-200 text-xs text-gray-600">{selectedAppointment.type}</span>
+                        <span className="px-2 py-1 rounded-full bg-white border border-gray-200 text-xs text-gray-600">{selectedAppointment.priority}</span>
+                      </div>
+                    </div>
+                    <div className="text-right text-xs text-gray-500">
+                      <p className="font-semibold text-gray-900">{selectedAppointment.time}</p>
+                      <p>{selectedAppointment.queueNumber}</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                  <div className="rounded-xl border border-gray-100 p-3">
+                    <p className="text-xs text-gray-500">Visit reason</p>
+                    <p className="font-medium text-gray-900 mt-1">{selectedAppointment.visitReason}</p>
+                  </div>
+                  <div className="rounded-xl border border-gray-100 p-3">
+                    <p className="text-xs text-gray-500">Department & doctor</p>
+                    <p className="font-medium text-gray-900 mt-1">{selectedAppointment.department}</p>
+                    <p className="text-gray-500">{selectedAppointment.doctor}</p>
+                  </div>
+                  <div className="rounded-xl border border-gray-100 p-3">
+                    <p className="text-xs text-gray-500">Check-in & queue</p>
+                    <p className="font-medium text-gray-900 mt-1">{selectedAppointment.checkInStatus} • position {selectedAppointment.queuePosition}</p>
+                    <p className="text-gray-500">{selectedAppointment.waitMinutes} min wait</p>
+                  </div>
+                  <div className="rounded-xl border border-gray-100 p-3">
+                    <p className="text-xs text-gray-500">Insurance & balance</p>
+                    <p className="font-medium text-gray-900 mt-1">{selectedAppointment.insuranceStatus} • {selectedAppointment.insuranceType}</p>
+                    <p className="text-gray-500">₦{selectedAppointment.outstandingBalance.toLocaleString()} outstanding</p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div className="rounded-xl bg-blue-50 border border-blue-100 p-3">
+                    <HeartPulse className="w-4 h-4 text-blue-600 mb-2" />
+                    <p className="text-xs text-blue-700 font-medium">Last vitals</p>
+                    <p className="text-xs text-blue-700/80 mt-1">{selectedAppointment.lastVitals}</p>
+                  </div>
+                  <div className="rounded-xl bg-red-50 border border-red-100 p-3">
+                    <AlertCircle className="w-4 h-4 text-red-600 mb-2" />
+                    <p className="text-xs text-red-700 font-medium">Clinical alerts</p>
+                    <p className="text-xs text-red-700/80 mt-1">{selectedAppointment.clinicalAlerts.join(', ') || 'None'}</p>
+                  </div>
+                  <div className="rounded-xl bg-amber-50 border border-amber-100 p-3">
+                    <Wallet className="w-4 h-4 text-amber-600 mb-2" />
+                    <p className="text-xs text-amber-700 font-medium">Allergies</p>
+                    <p className="text-xs text-amber-700/80 mt-1">{selectedAppointment.allergies.join(', ')}</p>
+                  </div>
+                </div>
+
+                <div className="rounded-xl border border-gray-100 p-3">
+                  <p className="text-xs font-medium text-gray-500 mb-2">Appointment history</p>
+                  <div className="space-y-2">
+                    {selectedAppointment.history.slice(0, 4).map((item) => (
+                      <div key={item} className="flex items-center gap-2 text-xs text-gray-600">
+                        <span className="w-2 h-2 rounded-full bg-[#1E1B8F]" />
+                        {item}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-4 sm:p-6 space-y-4">
+                <div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <Filter className="w-4 h-4 text-gray-500" />
+                    <p className="text-sm font-semibold text-gray-900">Interactive status</p>
+                  </div>
+                  <select
+                    value={selectedAppointment.status}
+                    onChange={(event) => {
+                      const nextStatus = event.target.value as AppointmentStatus;
+                      updateStatus(selectedAppointment.id, nextStatus, 'Status changed from dashboard widget');
+                      setSelectedAppointment((prev) => prev ? { ...prev, status: nextStatus } : prev);
+                    }}
+                    className="w-full h-10 rounded-lg border border-gray-200 bg-white px-3 text-sm"
+                  >
+                    {appointmentStatuses.map((status) => (
+                      <option key={status} value={status}>{status}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {actionConfig.map((action) => {
+                    const Icon = action.icon;
+                    const allowed = canRunAction(currentRole, action.id, selectedAppointment);
+                    return (
+                      <Button
+                        key={action.id}
+                        variant={allowed ? 'outline' : 'ghost'}
+                        disabled={!allowed}
+                        onClick={() => runAction(selectedAppointment.id, action.id)}
+                        className={cn('justify-start gap-2 min-h-10 text-left', !allowed && 'text-gray-400')}
+                      >
+                        <Icon className="w-4 h-4 flex-shrink-0" />
+                        <span className="truncate">{action.label}</span>
+                      </Button>
+                    );
+                  })}
+                </div>
+
+                <div className="rounded-xl border border-gray-100 p-3 space-y-2">
+                  <p className="text-xs font-medium text-gray-500">Quick contact</p>
+                  <div className="flex flex-wrap gap-2">
+                    <Button size="sm" variant="outline" onClick={() => toast.success(`Calling ${selectedAppointment.phone}`)}>
+                      <Phone className="w-4 h-4 mr-2" />
+                      Call
+                    </Button>
+                    <Button size="sm" variant="outline" onClick={() => runAction(selectedAppointment.id, 'send-reminder')}>
+                      <Mail className="w-4 h-4 mr-2" />
+                      Email
+                    </Button>
+                    <Button size="sm" variant="outline" onClick={() => toast.info('WhatsApp reminder channel is future-ready.')}>
+                      <MessageSquare className="w-4 h-4 mr-2" />
+                      WhatsApp
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="rounded-xl bg-gray-50 border border-gray-100 p-3 text-xs text-gray-600 space-y-1">
+                  <p><span className="font-medium text-gray-900">Last update:</span> {new Date(selectedAppointment.lastUpdated).toLocaleString()}</p>
+                  <p><span className="font-medium text-gray-900">Updated by:</span> {selectedAppointment.updatedBy}</p>
+                  <p><span className="font-medium text-gray-900">Sync:</span> {isOnline ? 'Realtime broadcast active' : 'Offline-first queue active'}</p>
+                </div>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { useSubscription } from '@/contexts/SubscriptionContext';
 import type { PageType } from '@/types';
 import type { UserRole } from '@/contexts/AuthContext';
+import { isFeatureEnabled } from '@/config/featureFlags';
 
 type TourType = 'intro' | 'workflow' | 'feature' | 'micro';
 type TourLayer = 'intro' | 'workflow' | 'advanced';
@@ -461,7 +462,47 @@ export function GuidedTourProvider({
   onNavigate: (page: PageType) => void;
 }) {
   const { addAudit, subscription } = useSubscription();
-  const [toursEnabled, setToursEnabledState] = useState<boolean>(() => localStorage.getItem(enabledKey(userName)) !== '0');
+  const globalFlagEnabled = isFeatureEnabled('onboardingToursEnabled');
+  
+  // If tours are globally disabled, return a no-op provider
+  if (!globalFlagEnabled) {
+    const noopValue: GuidedTourContextType = {
+      toursEnabled: false,
+      setToursEnabled: () => {},
+      startRoleOnboarding: () => {},
+      startIntroTour: () => {},
+      startWorkflowTraining: () => {},
+      startAdvancedTour: () => {},
+      startTourById: () => {},
+      triggerMicroTour: () => {},
+      replayCurrentRoleTour: () => {},
+      resetOnboarding: () => {},
+      progress: {
+        completedTours: [],
+        skippedTours: [],
+        partial: {},
+        modulesCompleted: [],
+        roleCompletion: {} as Record<UserRole, number>,
+        skillLevel: 'Beginner',
+        practiceCompletions: {},
+        dismissedMicroGuides: [],
+      },
+      activeTourMeta: null,
+    };
+    return (
+      <GuidedTourContext.Provider value={noopValue}>
+        {children}
+      </GuidedTourContext.Provider>
+    );
+  }
+  
+  const [toursEnabled, setToursEnabledState] = useState<boolean>(() => {
+    const localStorageValue = localStorage.getItem(enabledKey(userName));
+    if (localStorageValue !== null) {
+      return localStorageValue === '1';
+    }
+    return globalFlagEnabled;
+  });
   const [progress, setProgress] = useState<TourProgress>(() => {
     const saved = localStorage.getItem(progressKey(userName));
     if (saved) return JSON.parse(saved) as TourProgress;

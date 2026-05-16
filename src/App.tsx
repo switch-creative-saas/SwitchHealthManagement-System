@@ -35,6 +35,7 @@ import { GuidedTourProvider } from '@/contexts/GuidedTourContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { SecurityAuditProvider } from '@/contexts/SecurityAuditContext';
 import { SentinelProvider } from '@/contexts/SentinelContext';
+import { AppointmentProvider } from '@/contexts/AppointmentContext';
 
 function App() {
   return (
@@ -290,6 +291,7 @@ function AppShell() {
       ) : (
         <GuidedTourProvider currentPage={currentPage} currentRole={currentRole} userName={userName} onNavigate={navigateToPage}>
           <SentinelProvider>
+          <AppointmentProvider>
           <AppLayout>
             <div className="app-shell flex h-screen overflow-hidden">
         <Sidebar 
@@ -329,6 +331,7 @@ function AppShell() {
         <Toaster position="top-right" />
             </div>
           </AppLayout>
+          </AppointmentProvider>
           </SentinelProvider>
         </GuidedTourProvider>
       )}

@@ -35,6 +35,7 @@ import { applyTheme, getSavedTheme, type ThemeMode } from '@/lib/theme';
 import { useAuth, type UserRole } from '@/contexts/AuthContext';
 import { useSubscription } from '@/contexts/SubscriptionContext';
 import { useGuidedTour } from '@/contexts/GuidedTourContext';
+import { isFeatureEnabled, setFeatureOverride, clearFeatureOverride } from '@/config/featureFlags';
 
 import { RoleSwitcher } from '@/components/role/RoleSwitcher';
 
@@ -46,6 +47,7 @@ const tabs = [
   { id: 'notifications', label: 'Notifications', icon: Bell },
   { id: 'data', label: 'Data & Sync', icon: Database },
   { id: 'role', label: 'Role Simulation', icon: Shield },
+  { id: 'developer', label: 'Developer', icon: Shield },
 ] as const;
 type SettingsTab = (typeof tabs)[number]['id'];
 
@@ -75,6 +77,7 @@ export function SettingsPage({ onLogout, onDeleteAccount }: SettingsPageProps) {
   const { currentRole, setCurrentRole, userName, userEmail, hasPermission } = useAuth();
   const { subscription, hasAccess, DEV_OVERRIDE, addAudit } = useSubscription();
   const { toursEnabled, setToursEnabled, resetOnboarding, replayCurrentRoleTour, startRoleOnboarding } = useGuidedTour();
+  const globalToursEnabled = isFeatureEnabled('onboardingToursEnabled');
   const [activeTab, setActiveTab] = useState<SettingsTab>('profile');
   const [query, setQuery] = useState('');
   const [loading, setLoading] = useState(false);
@@ -151,6 +154,8 @@ export function SettingsPage({ onLogout, onDeleteAccount }: SettingsPageProps) {
   const canUseAppearanceSync = subscription.plan !== 'free' || DEV_OVERRIDE;
   const canUseAdvancedFacility = subscription.plan !== 'free' || DEV_OVERRIDE;
   const canUseBranchConfig = subscription.plan === 'enterprise' || DEV_OVERRIDE;
+  const canAccessDeveloperSettings = currentRole === 'super-admin' || currentRole === 'it-officer';
+  const [toursOverrideEnabled, setToursOverrideEnabled] = useState(isFeatureEnabled('onboardingToursEnabled'));
 
   const filteredActions = useMemo(
     () =>
@@ -272,6 +277,19 @@ export function SettingsPage({ onLogout, onDeleteAccount }: SettingsPageProps) {
     setShowDeleteAccountDialog(false);
     toast.success('Account deleted');
     onDeleteAccount();
+  };
+
+  const handleToursOverrideToggle = (enabled: boolean) => {
+    setToursOverrideEnabled(enabled);
+    if (enabled) {
+      setFeatureOverride('onboardingToursEnabled', true);
+      toast.success('Guided tours re-enabled (developer mode)');
+      addAudit('Developer: Guided tours re-enabled');
+    } else {
+      clearFeatureOverride('onboardingToursEnabled');
+      toast.success('Guided tours disabled (developer mode)');
+      addAudit('Developer: Guided tours disabled');
+    }
   };
 
   return (
@@ -529,19 +547,21 @@ export function SettingsPage({ onLogout, onDeleteAccount }: SettingsPageProps) {
               <div className="rounded-xl border border-gray-100 p-3 bg-gray-50 text-sm text-gray-700">
                 Role-based access preview: {hasPermission('Settings', 'edit') ? 'Admin scope' : 'User scope'} + Plan scope ({subscription.plan.toUpperCase()}).
               </div>
-              <div className="rounded-xl border border-gray-100 p-3 bg-gray-50 text-sm text-gray-700 space-y-3">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-medium text-gray-900">Guided Tours</p>
-                    <p className="text-xs text-gray-500">Enable onboarding and contextual walkthroughs.</p>
+              {globalToursEnabled && (
+                <div className="rounded-xl border border-gray-100 p-3 bg-gray-50 text-sm text-gray-700 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="font-medium text-gray-900">Guided Tours</p>
+                      <p className="text-xs text-gray-500">Enable onboarding and contextual walkthroughs.</p>
+                    </div>
+                    <Switch checked={toursEnabled} onCheckedChange={setToursEnabled} />
                   </div>
-                  <Switch checked={toursEnabled} onCheckedChange={setToursEnabled} />
+                  <div className="flex flex-wrap gap-2">
+                    <Button variant="outline" size="sm" onClick={replayCurrentRoleTour}>Replay Current Role Tour</Button>
+                    <Button variant="outline" size="sm" onClick={resetOnboarding}>Reset Onboarding</Button>
+                  </div>
                 </div>
-                <div className="flex flex-wrap gap-2">
-                  <Button variant="outline" size="sm" onClick={replayCurrentRoleTour}>Replay Current Role Tour</Button>
-                  <Button variant="outline" size="sm" onClick={resetOnboarding}>Reset Onboarding</Button>
-                </div>
-              </div>
+              )}
               <div className="flex justify-end">
                 <Button className="bg-gradient-to-r from-royal-500 to-royal-700 text-white" onClick={saveSecurity} disabled={loading}>
                   {savingSection === 'security' ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
@@ -763,14 +783,53 @@ export function SettingsPage({ onLogout, onDeleteAccount }: SettingsPageProps) {
                     <span className="text-gray-500">License</span>
                     <span className="font-medium text-gray-900">{subscription.plan.toUpperCase()} (Active)</span>
                   </div>
-                  <div className="flex justify-between py-2">
-                    <span className="text-gray-500">Support</span>
-                    <span className="font-medium text-royal-600">support@switchhealth.ng</span>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'developer' && (
+            <div className="premium-card p-6">
+              <h2 className="text-lg font-semibold text-gray-900 mb-6">Developer Settings</h2>
+              {!canAccessDeveloperSettings && (
+                <div className="mb-4 rounded-xl border border-red-100 bg-red-50 p-3 text-sm text-red-700">
+                  Developer settings are restricted to Super Admin, Platform Owner, and Developer roles only.
+                </div>
+              )}
+              <div className="space-y-6">
+                <div className="rounded-xl border border-gray-100 p-4 bg-gray-50">
+                  <h3 className="font-medium text-gray-900 mb-3">Experimental Features</h3>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="font-medium text-gray-900">Enable Guided Tours</p>
+                      <p className="text-xs text-gray-500">Re-enable onboarding tours for testing and development purposes.</p>
+                    </div>
+                    <Switch 
+                      checked={toursOverrideEnabled} 
+                      onCheckedChange={handleToursOverrideToggle}
+                      disabled={!canAccessDeveloperSettings}
+                    />
                   </div>
-                  <div className="flex justify-between py-2">
-                    <span className="text-gray-500">Future Hooks</span>
-                    <span className="font-medium text-gray-900">NHID / Insurance / Network Sync / Gulia Personalization</span>
+                  <div className="mt-2 text-xs text-gray-500">
+                    Current status: {toursOverrideEnabled ? 'Enabled (override)' : 'Disabled (global default)'}
                   </div>
+                </div>
+                <div className="rounded-xl border border-gray-100 p-4 bg-gray-50">
+                  <h3 className="font-medium text-gray-900 mb-3">Feature Flag Overrides</h3>
+                  <p className="text-sm text-gray-600 mb-3">Override global feature flags for development and testing.</p>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => {
+                      clearFeatureOverride('onboardingToursEnabled');
+                      setToursOverrideEnabled(isFeatureEnabled('onboardingToursEnabled'));
+                      toast.success('All feature flag overrides cleared');
+                      addAudit('Developer: Feature flag overrides cleared');
+                    }}
+                    disabled={!canAccessDeveloperSettings}
+                  >
+                    Reset All Overrides
+                  </Button>
                 </div>
               </div>
             </div>
@@ -826,6 +885,7 @@ export function SettingsPage({ onLogout, onDeleteAccount }: SettingsPageProps) {
                     notifications: async () => { await saveNotifications(); },
                     data: async () => { await saveDataSync(); },
                     role: async () => Promise.resolve(),
+                    developer: async () => Promise.resolve(),
                   };
                   void actions[activeTab]();
                 }}

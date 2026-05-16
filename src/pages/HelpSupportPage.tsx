@@ -28,6 +28,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { useAuth } from '@/contexts/AuthContext';
 import { useSubscription } from '@/contexts/SubscriptionContext';
 import { useGuidedTour } from '@/contexts/GuidedTourContext';
+import { isFeatureEnabled } from '@/config/featureFlags';
 
 type TicketStatus = 'open' | 'in-progress' | 'resolved' | 'closed';
 type TicketPriority = 'low' | 'medium' | 'high' | 'critical';
@@ -68,6 +69,7 @@ export function HelpSupportPage() {
   const { currentRole, userName } = useAuth();
   const { subscription, hasAccess, addAudit } = useSubscription();
   const { replayCurrentRoleTour, startTourById, startIntroTour, startWorkflowTraining, startAdvancedTour, progress } = useGuidedTour();
+  const toursEnabled = isFeatureEnabled('onboardingToursEnabled');
   const [search, setSearch] = useState('');
   const [ticketDialogOpen, setTicketDialogOpen] = useState(false);
   const [feedbackDialogOpen, setFeedbackDialogOpen] = useState(false);
@@ -252,10 +254,12 @@ export function HelpSupportPage() {
           <CheckCircle2 className="w-4 h-4" />
           Support availability: 9AM–6PM WAT
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm" onClick={replayCurrentRoleTour}>Replay Tour</Button>
-          <Button variant="outline" size="sm" onClick={() => startTourById('micro-billing-first')}>Billing Quick Tour</Button>
-        </div>
+        {toursEnabled && (
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" onClick={replayCurrentRoleTour}>Replay Tour</Button>
+            <Button variant="outline" size="sm" onClick={() => startTourById('micro-billing-first')}>Billing Quick Tour</Button>
+          </div>
+        )}
       </div>
 
       <div className="premium-card p-5">
@@ -275,32 +279,34 @@ export function HelpSupportPage() {
 
       <div className="grid xl:grid-cols-3 gap-4">
         <div className="xl:col-span-2 space-y-4">
-          <div className="premium-card p-5">
-            <h3 className="font-semibold text-gray-900 mb-3">Training Center</h3>
-            <p className="text-sm text-gray-600">Role-based onboarding with intro, workflow drills, advanced modules, and replay support.</p>
-            <div className="mt-3 h-2 rounded-full bg-gray-100 overflow-hidden">
-              <div className="h-full rounded-full bg-royal-600 transition-all" style={{ width: `${completionRate}%` }} />
+          {toursEnabled && (
+            <div className="premium-card p-5">
+              <h3 className="font-semibold text-gray-900 mb-3">Training Center</h3>
+              <p className="text-sm text-gray-600">Role-based onboarding with intro, workflow drills, advanced modules, and replay support.</p>
+              <div className="mt-3 h-2 rounded-full bg-gray-100 overflow-hidden">
+                <div className="h-full rounded-full bg-royal-600 transition-all" style={{ width: `${completionRate}%` }} />
+              </div>
+              <div className="mt-2 flex flex-wrap gap-2 text-xs">
+                <span className="px-2 py-1 rounded-full bg-royal-50 text-royal-700 border border-royal-100">Overall: {completionRate}%</span>
+                <span className="px-2 py-1 rounded-full bg-green-50 text-green-700 border border-green-100">Role Workflow: {roleCompletion}%</span>
+                <span className="px-2 py-1 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-100">Skill Level: {progress.skillLevel}</span>
+                {completionRate >= 90 && <span className="px-2 py-1 rounded-full bg-amber-50 text-amber-700 border border-amber-100">You are ready to use Switch Health</span>}
+              </div>
+              <div className="mt-3 grid sm:grid-cols-2 gap-2">
+                <Button variant="outline" onClick={startIntroTour}>Start Intro Tour</Button>
+                <Button variant="outline" onClick={() => startWorkflowTraining()}>Start Workflow Training</Button>
+                <Button variant="outline" onClick={() => startAdvancedTour('feature-ai-diagnosis')}>AI Diagnosis Tour</Button>
+                <Button variant="outline" onClick={() => startAdvancedTour('feature-telemedicine')}>Telemedicine Tour</Button>
+                <Button variant="outline" onClick={() => startAdvancedTour('feature-billing-insurance')}>Billing & Insurance Tour</Button>
+                <Button variant="outline" onClick={() => startAdvancedTour('feature-analytics')}>Analytics Tour</Button>
+              </div>
+              <div className="mt-2 text-xs text-gray-500">
+                Subscription-aware access: Free (basic workflow), Pro (full module training), Enterprise (advanced + custom workflows).
+              </div>
             </div>
-            <div className="mt-2 flex flex-wrap gap-2 text-xs">
-              <span className="px-2 py-1 rounded-full bg-royal-50 text-royal-700 border border-royal-100">Overall: {completionRate}%</span>
-              <span className="px-2 py-1 rounded-full bg-green-50 text-green-700 border border-green-100">Role Workflow: {roleCompletion}%</span>
-              <span className="px-2 py-1 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-100">Skill Level: {progress.skillLevel}</span>
-              {completionRate >= 90 && <span className="px-2 py-1 rounded-full bg-amber-50 text-amber-700 border border-amber-100">You are ready to use Switch Health</span>}
-            </div>
-            <div className="mt-3 grid sm:grid-cols-2 gap-2">
-              <Button variant="outline" onClick={startIntroTour}>Start Intro Tour</Button>
-              <Button variant="outline" onClick={() => startWorkflowTraining()}>Start Workflow Training</Button>
-              <Button variant="outline" onClick={() => startAdvancedTour('feature-ai-diagnosis')}>AI Diagnosis Tour</Button>
-              <Button variant="outline" onClick={() => startAdvancedTour('feature-telemedicine')}>Telemedicine Tour</Button>
-              <Button variant="outline" onClick={() => startAdvancedTour('feature-billing-insurance')}>Billing & Insurance Tour</Button>
-              <Button variant="outline" onClick={() => startAdvancedTour('feature-analytics')}>Analytics Tour</Button>
-            </div>
-            <div className="mt-2 text-xs text-gray-500">
-              Subscription-aware access: Free (basic workflow), Pro (full module training), Enterprise (advanced + custom workflows).
-            </div>
-          </div>
+          )}
 
-          {isAdminRole && (
+          {isAdminRole && toursEnabled && (
             <div className="premium-card p-5">
               <h3 className="font-semibold text-gray-900 mb-3">Onboarding Admin Control Panel</h3>
               <div className="grid sm:grid-cols-3 gap-2 text-sm">
