@@ -213,8 +213,8 @@ export function SettingsPage({ onLogout, onDeleteAccount }: SettingsPageProps) {
 
   const saveAppearance = async () => {
     if (!canUseAppearanceSync) return toast.error('Appearance sync across devices requires Pro plan');
-    localStorage.setItem(`switch-health-font-${currentRole}`, String(fontScale));
-    localStorage.setItem(`switch-health-compact-${currentRole}`, compactMode ? '1' : '0');
+    localStorage.setItem(`vitalink-font-${currentRole}`, String(fontScale));
+    localStorage.setItem(`vitalink-compact-${currentRole}`, compactMode ? '1' : '0');
     await simulateSave('appearance');
   };
 

@@ -170,7 +170,7 @@ export function HelpSupportPage() {
     setTicketDialogOpen(false);
     setTicketForm({ title: '', category: 'general', priority: 'medium', description: '', attachment: '' });
     addAudit(`Support ticket created (${ticket.id})`);
-    window.dispatchEvent(new CustomEvent('switch-health:notify', { detail: { module: 'support', type: 'ticket-created', message: `${ticket.id} created` } }));
+    window.dispatchEvent(new CustomEvent('vitalink:notify', { detail: { module: 'support', type: 'ticket-created', message: `${ticket.id} created` } }));
     toast.success('Support ticket created');
   };
 
@@ -202,7 +202,7 @@ export function HelpSupportPage() {
           priority: 'high',
         }));
         setTicketDialogOpen(true);
-        window.dispatchEvent(new CustomEvent('switch-health:notify', { detail: { module: 'support', type: 'chat-escalation', message: 'Chat escalated to human support' } }));
+        window.dispatchEvent(new CustomEvent('vitalink:notify', { detail: { module: 'support', type: 'chat-escalation', message: 'Chat escalated to human support' } }));
       }
     }, 800);
   };
@@ -218,14 +218,14 @@ export function HelpSupportPage() {
       { name: 'Offline mode', state: 'ok', detail: 'Offline cache and restore validated' },
     ]);
     setDiagnosticRunning(false);
-    window.dispatchEvent(new CustomEvent('switch-health:notify', { detail: { module: 'support', type: 'diagnostics', message: 'Diagnostics completed with warnings' } }));
+    window.dispatchEvent(new CustomEvent('vitalink:notify', { detail: { module: 'support', type: 'diagnostics', message: 'Diagnostics completed with warnings' } }));
     toast.success('Diagnostics complete');
   };
 
   const updateTicketStatus = (ticketId: string, status: TicketStatus) => {
     if (!canManageTickets) return toast.error('Only Admin/Support Agent can update tickets');
     setTickets((prev) => prev.map((ticket) => (ticket.id === ticketId ? { ...ticket, status } : ticket)));
-    window.dispatchEvent(new CustomEvent('switch-health:notify', { detail: { module: 'support', type: 'ticket-updated', message: `${ticketId} marked ${status}` } }));
+    window.dispatchEvent(new CustomEvent('vitalink:notify', { detail: { module: 'support', type: 'ticket-updated', message: `${ticketId} marked ${status}` } }));
     toast.success(`Ticket ${ticketId} -> ${status}`);
   };
 

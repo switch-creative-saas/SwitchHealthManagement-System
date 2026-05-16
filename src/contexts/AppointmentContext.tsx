@@ -130,9 +130,9 @@ interface AppointmentContextType {
 
 const AppointmentContext = createContext<AppointmentContextType | null>(null);
 
-const appointmentsKey = 'switch-health-appointments-core';
-const filtersKey = 'switch-health-appointments-dashboard-context';
-const offlineQueueKey = 'switch-health-appointments-offline-queue';
+const appointmentsKey = 'vitalink-appointments-core';
+const filtersKey = 'vitalink-appointments-dashboard-context';
+const offlineQueueKey = 'vitalink-appointments-offline-queue';
 
 export const appointmentTypes: AppointmentType[] = [
   'Consultation',
@@ -177,7 +177,7 @@ const seedAppointments: AppointmentRecord[] = [
   {
     id: 'a1',
     patient: 'Chioma Okonkwo',
-    patientSwitchId: 'SW-2026-000261',
+    patientSwitchId: 'VL-2026-000261',
     nfcId: 'NFC-9A2C-OKO',
     patientAvatar: 'CO',
     doctor: 'Dr. Sarah Johnson',
@@ -213,7 +213,7 @@ const seedAppointments: AppointmentRecord[] = [
   {
     id: 'a2',
     patient: 'Emmanuel Adeyemi',
-    patientSwitchId: 'SW-2026-000262',
+    patientSwitchId: 'VL-2026-000262',
     nfcId: 'NFC-4F11-ADE',
     patientAvatar: 'EA',
     doctor: 'Dr. Michael Chen',
@@ -249,7 +249,7 @@ const seedAppointments: AppointmentRecord[] = [
   {
     id: 'a3',
     patient: 'Fatima Abdullahi',
-    patientSwitchId: 'SW-2026-000263',
+    patientSwitchId: 'VL-2026-000263',
     nfcId: 'NFC-A891-ABD',
     patientAvatar: 'FA',
     doctor: 'Dr. Sarah Johnson',
@@ -285,7 +285,7 @@ const seedAppointments: AppointmentRecord[] = [
   {
     id: 'a4',
     patient: 'Oluwaseun Balogun',
-    patientSwitchId: 'SW-2026-000264',
+    patientSwitchId: 'VL-2026-000264',
     nfcId: 'NFC-5DD2-BAL',
     patientAvatar: 'OB',
     doctor: 'Dr. Emily Davis',
@@ -321,7 +321,7 @@ const seedAppointments: AppointmentRecord[] = [
   {
     id: 'a5',
     patient: 'Aisha Bello',
-    patientSwitchId: 'SW-2026-000265',
+    patientSwitchId: 'VL-2026-000265',
     nfcId: 'NFC-23EF-BEL',
     patientAvatar: 'AB',
     doctor: 'Dr. Ngozi Eze',
@@ -379,7 +379,7 @@ function readJson<T>(key: string, fallback: T): T {
 }
 
 function notify(module: string, type: string, message: string) {
-  window.dispatchEvent(new CustomEvent('switch-health:notify', { detail: { module, type, message } }));
+  window.dispatchEvent(new CustomEvent('vitalink:notify', { detail: { module, type, message } }));
 }
 
 function routeTo(page: string, extra?: Record<string, string>) {

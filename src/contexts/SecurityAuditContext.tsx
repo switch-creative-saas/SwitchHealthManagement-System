@@ -243,8 +243,8 @@ export function SecurityAuditProvider({ children }: { children: ReactNode }) {
         details: detail.message,
       });
     };
-    window.addEventListener('switch-health:notify', onNotify as EventListener);
-    return () => window.removeEventListener('switch-health:notify', onNotify as EventListener);
+    window.addEventListener('vitalink:notify', onNotify as EventListener);
+    return () => window.removeEventListener('vitalink:notify', onNotify as EventListener);
   }, [currentRole, userEmail, userName]);
 
   useEffect(() => {
@@ -273,7 +273,7 @@ export function SecurityAuditProvider({ children }: { children: ReactNode }) {
     const failedAttempts = logs.filter((entry) => entry.action === 'LOGIN' && entry.status === 'failed' && Date.now() - new Date(entry.timestamp).getTime() < 10 * 60_000);
     if (failedAttempts.length >= 3) {
       window.dispatchEvent(
-        new CustomEvent('switch-health:notify', {
+        new CustomEvent('vitalink:notify', {
           detail: {
             module: 'security',
             type: 'threat-failed-logins',
@@ -285,7 +285,7 @@ export function SecurityAuditProvider({ children }: { children: ReactNode }) {
     const patientViews = logs.filter((entry) => entry.resource === 'Patient Record' && entry.action === 'VIEW' && Date.now() - new Date(entry.timestamp).getTime() < 5 * 60_000);
     if (patientViews.length >= 8) {
       window.dispatchEvent(
-        new CustomEvent('switch-health:notify', {
+        new CustomEvent('vitalink:notify', {
           detail: {
             module: 'security',
             type: 'threat-mass-patient-access',
@@ -298,7 +298,7 @@ export function SecurityAuditProvider({ children }: { children: ReactNode }) {
 
   const flagLog = (id: string) => {
     setLogs((prev) => prev.map((entry) => (entry.id === id ? { ...entry, flagged: true, riskLevel: 'high' } : entry)));
-    window.dispatchEvent(new CustomEvent('switch-health:notify', { detail: { module: 'security', type: 'manual-flag', message: 'Audit event flagged as suspicious' } }));
+    window.dispatchEvent(new CustomEvent('vitalink:notify', { detail: { module: 'security', type: 'manual-flag', message: 'Audit event flagged as suspicious' } }));
   };
 
   const exportLogs: SecurityAuditContextType['exportLogs'] = (rows, format) => {

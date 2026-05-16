@@ -154,8 +154,8 @@ export function NotificationBell() {
         ...prev,
       ].slice(0, 30));
     };
-    window.addEventListener('switch-health:notify', onNotify as EventListener);
-    return () => window.removeEventListener('switch-health:notify', onNotify as EventListener);
+    window.addEventListener('vitalink:notify', onNotify as EventListener);
+    return () => window.removeEventListener('vitalink:notify', onNotify as EventListener);
   }, []);
 
   const markAsRead = (id: string) => {

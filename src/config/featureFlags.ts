@@ -1,5 +1,5 @@
 /**
- * Switch Health Feature Flags
+ * VitaLink Feature Flags
  * Central configuration for enabling/disabling platform features
  */
 

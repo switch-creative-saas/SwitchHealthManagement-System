@@ -1,7 +1,7 @@
 export type ThemeMode = 'light' | 'dark' | 'system';
 
 const THEME_KEY = 'switch-theme';
-const LEGACY_THEME_KEY = 'switch-health-theme';
+const LEGACY_THEME_KEY = 'vitalink-theme';
 let mediaListenerCleanup: (() => void) | null = null;
 
 function getSystemPrefersDark() {

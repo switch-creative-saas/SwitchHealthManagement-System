@@ -319,7 +319,7 @@ export function PatientOnboardingWizard({
                   </div>
                   <div className="rounded-xl border border-green-200 bg-green-50 p-3 text-sm text-green-700 flex items-center gap-2">
                     <CheckCircle2 className="w-4 h-4" />
-                    Switch ID will be generated as <span className="font-semibold">SW-YYYY-XXXXXX</span> at save time.
+                    Switch ID will be generated as <span className="font-semibold">VL-YYYY-XXXXXX</span> at save time.
                   </div>
                 </div>
               )}

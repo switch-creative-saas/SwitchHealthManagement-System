@@ -102,7 +102,7 @@ function safeExportFile(name: string, content: string, type: string) {
 export function AnalyticsPage() {
   const { currentRole, hasPermission, userName } = useAuth();
   const { hasAccess } = useSubscription();
-  const storageKey = `switch-health-analytics-range:${currentRole}`;
+  const storageKey = `vitalink-analytics-range:${currentRole}`;
   const [dateRange, setDateRange] = useState<TimeRange>(() => {
     const saved = localStorage.getItem(storageKey);
     return TIME_RANGES.includes(saved as TimeRange) ? (saved as TimeRange) : '7d';
@@ -171,7 +171,7 @@ export function AnalyticsPage() {
       ['widget', widgetExport],
     ];
     const csv = rows.map((r) => r.join(',')).join('\n');
-    safeExportFile(`switch-health-analytics-${dateRange}.${format === 'excel' ? 'xlsx' : 'csv'}`, csv, 'text/csv;charset=utf-8;');
+    safeExportFile(`vitalink-analytics-${dateRange}.${format === 'excel' ? 'xlsx' : 'csv'}`, csv, 'text/csv;charset=utf-8;');
     toast.success(`Exported ${widgetExport} as ${format.toUpperCase()}`);
   };
 

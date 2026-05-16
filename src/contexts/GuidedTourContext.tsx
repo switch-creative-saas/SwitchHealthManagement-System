@@ -885,7 +885,7 @@ export function GuidedTourProvider({
 }
 
 function toastMessage(message: string) {
-  window.dispatchEvent(new CustomEvent('switch-health:notify', { detail: { module: 'tour', type: 'tour-progress', message } }));
+  window.dispatchEvent(new CustomEvent('vitalink:notify', { detail: { module: 'tour', type: 'tour-progress', message } }));
 }
 
 export function useGuidedTour() {

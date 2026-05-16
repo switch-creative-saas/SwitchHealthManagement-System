@@ -205,7 +205,7 @@ const INITIAL_PAYMENT_METHODS: PaymentMethod[] = [
 ];
 
 export function SubscriptionProvider({ children }: { children: ReactNode }) {
-  const [tenantId, setTenantIdState] = useState<string>(() => localStorage.getItem('switch-health-tenant-id') ?? 'tenant-lagos');
+  const [tenantId, setTenantIdState] = useState<string>(() => localStorage.getItem('vitalink-tenant-id') ?? 'tenant-lagos');
   const [tenantSubscriptions, setTenantSubscriptions] = useState<Record<string, TenantSubscription>>(TENANT_SUBSCRIPTIONS);
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>(INITIAL_PAYMENT_METHODS);
   const [invoices] = useState<BillingInvoice[]>(INITIAL_INVOICES);
@@ -217,7 +217,7 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
 
   const setTenantId = (nextTenantId: string) => {
     setTenantIdState(nextTenantId);
-    localStorage.setItem('switch-health-tenant-id', nextTenantId);
+    localStorage.setItem('vitalink-tenant-id', nextTenantId);
   };
 
   const addAudit = (message: string) => {

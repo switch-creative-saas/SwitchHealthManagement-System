@@ -485,7 +485,7 @@ export function LaboratoryPage() {
       description: `${id} · Status: Pending · Lab staff notified`,
     });
     window.dispatchEvent(
-      new CustomEvent('switch-health:notify', {
+      new CustomEvent('vitalink:notify', {
         detail: { channel: 'lab', type: 'new-order', orderId: id, message: 'New lab order queued' },
       }),
     );
@@ -516,7 +516,7 @@ export function LaboratoryPage() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `switch-health-lab-orders-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.download = `vitalink-lab-orders-${new Date().toISOString().slice(0, 10)}.csv`;
     a.click();
     URL.revokeObjectURL(url);
     toast.success('CSV exported');
@@ -562,7 +562,7 @@ export function LaboratoryPage() {
     });
     if (anyCritical) {
       window.dispatchEvent(
-        new CustomEvent('switch-health:notify', {
+        new CustomEvent('vitalink:notify', {
           detail: {
             channel: 'lab',
             type: 'critical',
@@ -573,7 +573,7 @@ export function LaboratoryPage() {
       );
     } else {
       window.dispatchEvent(
-        new CustomEvent('switch-health:notify', {
+        new CustomEvent('vitalink:notify', {
           detail: { channel: 'lab', type: 'results-ready', orderId: sheetOrder.id },
         }),
       );

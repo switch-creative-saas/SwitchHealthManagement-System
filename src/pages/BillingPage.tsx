@@ -180,7 +180,7 @@ export function BillingPage() {
   }, [invoices, claims]);
 
   useEffect(() => {
-    window.dispatchEvent(new CustomEvent('switch-health:notify', { detail: { module: 'billing', type: 'overdue', message: `${invoices.filter((i) => i.status === 'overdue').length} overdue invoice(s)` } }));
+    window.dispatchEvent(new CustomEvent('vitalink:notify', { detail: { module: 'billing', type: 'overdue', message: `${invoices.filter((i) => i.status === 'overdue').length} overdue invoice(s)` } }));
   }, [invoices]);
 
   function nextInvoiceId() {
@@ -216,7 +216,7 @@ export function BillingPage() {
     setInvoices((prev) => [invoice, ...prev]);
     setInvoiceOpen(false);
     toast.success('Invoice generated', { description: `${invoice.id} created and linked to patient record` });
-    window.dispatchEvent(new CustomEvent('switch-health:notify', { detail: { module: 'billing', type: 'invoice-generated', message: `Invoice ${invoice.id} generated for ${invoice.patient_name}` } }));
+    window.dispatchEvent(new CustomEvent('vitalink:notify', { detail: { module: 'billing', type: 'invoice-generated', message: `Invoice ${invoice.id} generated for ${invoice.patient_name}` } }));
   }
 
   function recordPayment() {
@@ -231,7 +231,7 @@ export function BillingPage() {
     setPayments((prev) => [{ id: `PAY-${Date.now()}`, invoice_id: invoice.id, amount: paid, method: paymentForm.method, date: new Date().toISOString().slice(0, 10), recorded_by: userName }, ...prev]);
     setPaymentOpen(false);
     toast.success('Payment recorded');
-    window.dispatchEvent(new CustomEvent('switch-health:notify', { detail: { module: 'billing', type: 'payment-received', message: `${invoice.id} payment received` } }));
+    window.dispatchEvent(new CustomEvent('vitalink:notify', { detail: { module: 'billing', type: 'payment-received', message: `${invoice.id} payment received` } }));
   }
 
   function createClaim() {
@@ -253,7 +253,7 @@ export function BillingPage() {
     }
     if (status === 'rejected') {
       toast.error('Claim rejected. Billing admin notified.');
-      window.dispatchEvent(new CustomEvent('switch-health:notify', { detail: { module: 'billing', type: 'claim-rejected', message: `Claim ${claimId} rejected` } }));
+      window.dispatchEvent(new CustomEvent('vitalink:notify', { detail: { module: 'billing', type: 'claim-rejected', message: `Claim ${claimId} rejected` } }));
     }
   }
 

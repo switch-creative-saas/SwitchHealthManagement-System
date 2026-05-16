@@ -53,14 +53,14 @@ export interface RegistryPatient {
   updatedBy: string;
 }
 
-const STORAGE_KEY = 'switch-health-patient-registry-v1';
-const SWITCH_COUNTER_KEY = 'switch-health-switch-id-counters-v1';
+const STORAGE_KEY = 'vitalink-patient-registry-v1';
+const SWITCH_COUNTER_KEY = 'vitalink-switch-id-counters-v1';
 
 const starterPatients: RegistryPatient[] = [
   {
     id: 'pt_1',
     tenantId: 'lagos-central-hospital',
-    switchId: 'SW-2026-000245',
+    switchId: 'VL-2026-000245',
     firstName: 'Adebayo',
     middleName: 'Kunle',
     lastName: 'Johnson',
@@ -136,7 +136,7 @@ export async function generateSwitchId(tenantId: string): Promise<string> {
   const next = (map[counterKey] ?? 0) + 1;
   map[counterKey] = next;
   saveCounterMap(map);
-  return `SW-${year}-${String(next).padStart(6, '0')}`;
+  return `VL-${year}-${String(next).padStart(6, '0')}`;
 }
 
 export function detectDuplicate(

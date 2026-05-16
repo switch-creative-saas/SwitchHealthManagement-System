@@ -173,7 +173,7 @@ export function HumanResourcesPage() {
     toast.success('Staff saved & invite sent', {
       description: `Email sent to ${staffForm.accountEmail} with app link + ${staffForm.setupMethod === 'magic-link' ? 'magic link' : 'temporary password'} setup`,
     });
-    window.dispatchEvent(new CustomEvent('switch-health:notify', { detail: { module: 'hr', type: 'staff-created', staff: created.email } }));
+    window.dispatchEvent(new CustomEvent('vitalink:notify', { detail: { module: 'hr', type: 'staff-created', staff: created.email } }));
   };
 
   const openRoleEditor = (role?: Role) => {
@@ -249,7 +249,7 @@ export function HumanResourcesPage() {
       toast.success('HR report ready for PDF');
       return;
     }
-    csvExport('switch-health-staff.csv', [
+    csvExport('vitalink-staff.csv', [
       ['Name', 'Role', 'Department', 'Email', 'Phone', 'Status', 'Last Login'],
       ...filteredStaff.map((s) => [
         `${s.firstName} ${s.lastName}`,
@@ -590,7 +590,7 @@ export function HumanResourcesPage() {
                   {[
                     'Logged in from Lagos workstation',
                     'Updated appointment schedule',
-                    'Viewed patient profile SW-2026-000221',
+                    'Viewed patient profile VL-2026-000221',
                     'Role permission sync completed',
                   ].map((log, i) => (
                     <div key={log} className="p-3 rounded-xl bg-gray-50 border border-gray-100 text-sm text-gray-700">

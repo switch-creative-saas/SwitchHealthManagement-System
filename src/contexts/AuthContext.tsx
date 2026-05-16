@@ -291,13 +291,13 @@ const AuthContext = createContext<AuthContextType | null>(null);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [currentRole, setCurrentRole] = useState<UserRole>(() => {
     // Try to get from localStorage
-    const saved = localStorage.getItem('switch-health-role');
+    const saved = localStorage.getItem('vitalink-role');
     return (saved as UserRole) || 'super-admin';
   });
 
   const roleConfig = ROLE_CONFIGS[currentRole];
   const [userProfile, setUserProfileState] = useState<{ name: string; email: string; avatar?: string } | null>(() => {
-    const raw = localStorage.getItem('switch-health-user-profile');
+    const raw = localStorage.getItem('vitalink-user-profile');
     if (!raw) return null;
     try {
       return JSON.parse(raw) as { name: string; email: string; avatar?: string };
@@ -350,17 +350,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const handleSetRole = (role: UserRole) => {
     setCurrentRole(role);
-    localStorage.setItem('switch-health-role', role);
+    localStorage.setItem('vitalink-role', role);
   };
 
   const setUserProfile = (profile: { name: string; email: string; avatar?: string }) => {
     setUserProfileState(profile);
-    localStorage.setItem('switch-health-user-profile', JSON.stringify(profile));
+    localStorage.setItem('vitalink-user-profile', JSON.stringify(profile));
   };
 
   const clearUserProfile = () => {
     setUserProfileState(null);
-    localStorage.removeItem('switch-health-user-profile');
+    localStorage.removeItem('vitalink-user-profile');
   };
 
   return (

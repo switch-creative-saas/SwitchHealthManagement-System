@@ -261,7 +261,7 @@ function AppShell() {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('switch-health-auth-session');
+    localStorage.removeItem('vitalink-auth-session');
     setIsAuthenticated(false);
     setCurrentPage('dashboard');
     setGuliaPanelOpen(false);
@@ -269,17 +269,17 @@ function AppShell() {
   };
 
   const handleDeleteAccount = () => {
-    const rawUsers = localStorage.getItem('switch-health-auth-users');
+    const rawUsers = localStorage.getItem('vitalink-auth-users');
     if (rawUsers) {
       try {
         const users = JSON.parse(rawUsers) as Array<{ email?: string }>;
         const nextUsers = users.filter((user) => user.email?.toLowerCase() !== userEmail.toLowerCase());
-        localStorage.setItem('switch-health-auth-users', JSON.stringify(nextUsers));
+        localStorage.setItem('vitalink-auth-users', JSON.stringify(nextUsers));
       } catch {
         // Keep fail-safe behavior: if users payload is invalid, continue logout flow.
       }
     }
-    localStorage.removeItem(`switch-health-onboarding-complete-${userEmail.toLowerCase()}`);
+    localStorage.removeItem(`vitalink-onboarding-complete-${userEmail.toLowerCase()}`);
     clearUserProfile();
     handleLogout();
   };

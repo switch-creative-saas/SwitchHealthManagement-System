@@ -222,8 +222,8 @@ function SidebarContent({ currentPage, onPageChange, expanded, navItems, bottomN
           
           {expanded && (
             <div className="flex flex-col">
-              <span className="font-bold text-white text-sm tracking-tight">Switch Health</span>
-              <span className="text-[10px] text-white/60 tracking-wider uppercase">Management System</span>
+              <span className="font-bold text-white text-sm tracking-tight">VitaLink</span>
+              <span className="text-[10px] text-white/60 tracking-wider uppercase">Healthcare Infrastructure</span>
             </div>
           )}
         </div>

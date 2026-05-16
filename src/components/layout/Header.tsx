@@ -81,14 +81,14 @@ export function Header({ title, onAIClick, onPageChange, onLogout, onDeleteAccou
         {/* AI Button */}
         <button
           onClick={onAIClick}
-          className="relative p-2.5 rounded-xl bg-gradient-to-br from-[#1E1B8F]/10 to-[#D4AF37]/10 hover:from-[#1E1B8F]/20 hover:to-[#D4AF37]/20 border border-[#1E1B8F]/20 transition-all duration-200"
+          className="relative p-2.5 rounded-xl bg-gradient-to-br from-[#0D6B7D]/10 to-[#FF8C42]/10 hover:from-[#0D6B7D]/20 hover:to-[#FF8C42]/20 border border-[#0D6B7D]/20 transition-all duration-200"
         >
-          <svg className="w-5 h-5 text-[#1E1B8F]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <svg className="w-5 h-5 text-[#0D6B7D]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M12 2L2 7l10 5 10-5-10-5z" />
             <path d="M2 17l10 5 10-5" />
             <path d="M2 12l10 5 10-5" />
           </svg>
-          <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-[#D4AF37] text-[10px] font-bold text-white flex items-center justify-center">
+          <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-[#FF8C42] text-[10px] font-bold text-white flex items-center justify-center">
             AI
           </span>
         </button>

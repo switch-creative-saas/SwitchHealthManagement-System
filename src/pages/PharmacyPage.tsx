@@ -188,7 +188,7 @@ export function PharmacyPage() {
   const alertRef = useRef({ low: '', expiry: '', daily: '' });
 
   function notify(type: 'low-stock' | 'new-prescription' | 'dispensed' | 'daily-summary', message: string) {
-    window.dispatchEvent(new CustomEvent('switch-health:notify', { detail: { module: 'pharmacy', type, message } }));
+    window.dispatchEvent(new CustomEvent('vitalink:notify', { detail: { module: 'pharmacy', type, message } }));
   }
 
   useEffect(() => {
